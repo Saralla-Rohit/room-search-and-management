@@ -1,0 +1,12 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore all .log files
+*.log
+
+# Ignore VS Code settings folder
+.vscode/
+
+# Ignore compiled files
+*.out
+*.class

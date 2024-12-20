@@ -1,0 +1,55 @@
+<div class="bg-light text-dark p-4" >
+    <h2>Add Room</h2>
+    <dl class="room-form">
+        <dt>RoomId</dt>
+        <dd><input type="number" class="form-control" id="txtRoomId"></dd>
+
+        <dt>Description</dt>
+        <dd><input type="text" class="form-control" id="txtDescription"></dd>
+
+        <dt>Price</dt>
+        <dd><input type="number" class="form-control" id="txtPrice"></dd>
+
+        <!-- Group Bedrooms and Bathrooms in a horizontal layout -->
+        <dt>Bedrooms & Bathrooms</dt>
+        <dd class="d-flex justify-content-between">
+            <input type="number" class="form-control w-45 me-1" id="txtBedrooms" placeholder="Bedrooms">
+            <input type="number" class="form-control w-45 ms-1" id="txtBathrooms" placeholder="Bathrooms">
+        </dd>
+        <!-- Group toggle switches in one line -->
+        <dt>Furnished, Parking, Bachelors Allowed</dt>
+        <dd class="form-toggle-group">
+            <div class="form-check form-check-inline">
+                <input type="checkbox" class="form-check-input" id="chkFurnished">
+                <label class="form-check-label" for="chkFurnished">Furnished</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input type="checkbox" class="form-check-input" id="chkParking">
+                <label class="form-check-label" for="chkParking">Parking</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input type="checkbox" class="form-check-input" id="chkBachelorsAllowed">
+                <label class="form-check-label" for="chkBachelorsAllowed">Bachelors Allowed</label>
+            </div>
+        </dd>
+        <!-- Property Type -->
+        <dt>Property Type</dt>
+        <dd>
+            <select class="form-control" id="selPropertyType">
+                <option value="apartment">Apartment</option>
+                <option value="duplex">Duplex</option>
+                <option value="independent House">Independent House</option>
+            </select>
+        </dd>
+
+        <!-- Group file input and userId -->
+        <dt>Room Image</dt>
+        <dd class="d-flex justify-content-between">
+            <input type="file" class="form-control w-45" id="fileRoomImage">
+            <input type="number" class="form-control w-45" id="txtUserId" disabled hidden placeholder="UserId">
+        </dd>
+    </dl>
+
+    <button id="btnAddRoom" class="btn btn-primary w-100">Add Room</button>
+    <button id="btnCancelRoom" class="btn btn-danger w-100 mt-2">Cancel</button>
+</div>
