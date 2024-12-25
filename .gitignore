@@ -1,6 +1,6 @@
 # Ignore node_modules
 node_modules/
-
+uploads/
 # Ignore all .log files
 *.log
 

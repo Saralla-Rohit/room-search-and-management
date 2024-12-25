@@ -3,7 +3,7 @@ $(function () {
         const priceValue = e.target.value;
         // Update the current price displayed in the label and span
         $("#currentPrice").text("$" + priceValue); // Update the label for the price
-    });
+    })
     // When the "Apply Filters" button is clicked
     $(document).on("click", "#btnApplyFilters", function () {
 

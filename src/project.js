@@ -9,7 +9,14 @@ $(function () {
         });
     }
 
-    loadView("../public/home.html");
+    // Check if user is logged in
+    const userId = $.cookie("userid");
+    if (userId) {
+        loadView("../public/user-dashboard.html");
+        GetRooms(userId);
+    } else {
+        loadView("../public/home.html");
+    }
 
     $(document).on("click", "#btnCreateAccount", () => {
         loadView("../public/register.html");
@@ -177,49 +184,57 @@ $(function () {
         GetRooms($.cookie("userid"));
     });
 
-    $(document).on("click", "#btnAddRoom", () => {
-        var room = {
-            RoomId: $("#txtRoomId").val(),
-            Description: $("#txtDescription").val(),
-            Price: $("#txtPrice").val(),
-            Bedrooms: $("#txtBedrooms").val(),
-            Furnished: $("#chkFurnished").prop('checked'),
-            Bathrooms: $("#txtBathrooms").val(),
-            Parking: $("#chkParking").prop('checked'),
-            BachelorsAllowed: $("#chkBachelorsAllowed").prop('checked'),
-            PropertyType: $("#selPropertyType").val(),
-            UserId: $.cookie("userid")
-        };
+    // Prevent any form submissions globally
+    $(document).on('submit', 'form', function(e) {
+        e.preventDefault();
+        return false;
+    });
 
-        var formData = new FormData();
-        formData.append("RoomId", room.RoomId);
-        formData.append("Description", room.Description);
-        formData.append("Price", room.Price);
-        formData.append("Bedrooms", room.Bedrooms);
-        formData.append("Furnished", room.Furnished);
-        formData.append("Bathrooms", room.Bathrooms);
-        formData.append("Parking", room.Parking);
-        formData.append("BachelorsAllowed", room.BachelorsAllowed);
-        formData.append("PropertyType", room.PropertyType);
-        formData.append("UserId", room.UserId);
-
-        var fileInput = $("#fileRoomImage")[0].files[0];
-        if (fileInput) {
-            formData.append("image", fileInput); // Append image to FormData
+    // Handle room addition
+    $(document).on('click', '#btnAddRoom', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        
+        // Create FormData object
+        const formData = new FormData();
+        
+        // Get file input
+        const fileInput = $('#fileRoomImage')[0];
+        if (fileInput && fileInput.files[0]) {
+            formData.append('image', fileInput.files[0]);
         }
+        
+        // Add form data
+        formData.append('RoomId', $('#txtRoomId').val());
+        formData.append('Description', $('#txtDescription').val());
+        formData.append('Price', $('#txtPrice').val());
+        formData.append('Bedrooms', $('#txtBedrooms').val());
+        formData.append('Bathrooms', $('#txtBathrooms').val());
+        formData.append('Furnished', $('#chkFurnished').prop('checked'));
+        formData.append('Parking', $('#chkParking').prop('checked'));
+        formData.append('BachelorsAllowed', $('#chkBachelorsAllowed').prop('checked'));
+        formData.append('PropertyType', $('#selPropertyType').val());
+        formData.append('UserId', $.cookie('userid'));
 
+        // Send AJAX request
         $.ajax({
-            method: "post",
-            url: "http://127.0.0.1:5000/add-room",
+            url: 'http://127.0.0.1:5000/add-room',
+            type: 'POST',
             data: formData,
-            processData: false, // Don't process the data as it's a FormData object
+            processData: false,
             contentType: false,
-            success: () => {
-                alert("Room Added successfully");
-                loadView("../public/user-dashboard.html");
-                GetRooms($.cookie("userid"));
+            success: function() {
+                alert('Room Added Successfully');
+                window.location.href = '../public/user-dashboard.html';
+            },
+            error: function(xhr, status, error) {
+                console.error('Error adding room:', error);
+                alert('Error adding room. Please try again.');
             }
         });
+
+        return false;
     });
 
     $(document).on("click", "#btnEdit", (e) => {
@@ -387,13 +402,4 @@ $(function () {
         filters.price = price;
     });
     // ----------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
 });
