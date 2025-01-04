@@ -1,5 +1,5 @@
 # Ignore all jpg files in uploads folder
-uploads/*.jpg   
+uploads/*   
 
 
 # Logs
