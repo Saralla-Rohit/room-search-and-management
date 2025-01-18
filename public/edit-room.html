@@ -2,15 +2,16 @@
 <div class="bg-light text-dark p-4">
     <h2>Edit Room</h2>
     <dl class="room-form">
-        <dt>RoomId</dt>
-        <dd><input type="number" class="form-control" id="txtRoomId" ></dd>
+        <dd><input type="number" class="form-control" id="txtRoomId" hidden ></dd>
 
         <dt>Description</dt>
         <dd><input type="text" class="form-control" id="txtDescription"></dd>
 
-        <dt>Price</dt>
-        <dd><input type="number" class="form-control" id="txtPrice"></dd>
-
+        <dt>Price and Contact Info</dt>
+        <div class="d-flex justify-content-between">
+            <input type="number" class="form-control w-45 me-1" id="txtPrice">
+            <input type="text" id="txtContact" class="form-control w-45 me-1">
+        </div>
         <dt>Bedrooms & Bathrooms</dt>
         <dd class="d-flex justify-content-between">
             <input type="number" class="form-control w-45 me-1" id="txtBedrooms" placeholder="Bedrooms">

@@ -10,24 +10,24 @@ $(function () {
     }
 
     // Check if user is logged in
-    const userId = $.cookie("userid");
-    if (userId) {
-        loadView("../public/user-dashboard.html");
-        GetRooms(userId);
+    const UserId = $.cookie("UserId");
+    if (UserId) {
+        loadView("/public/user-dashboard.html");
+        GetRooms(UserId);
     } else {
-        loadView("../public/home.html");
+        loadView("/public/home.html");
     }
 
     $(document).on("click", "#btnCreateAccount", () => {
-        loadView("../public/register.html");
+        loadView("/public/register.html");
     });
 
     $(document).on("click", "#btnSignin", () => {
-        loadView("../public/login.html");
+        loadView("/public/login.html");
     });
 
     $(document).on("click", "#btnCancel", () => {
-        loadView("../public/home.html");
+        loadView("/public/home.html");
     });
 
     $(document).on("click", "#btnRegister", () => {
@@ -45,7 +45,7 @@ $(function () {
             data: user,
             success: () => {
                 alert("Registered Successfully..");
-                loadView("../public/user-login.html");
+                loadView("/public/user-login.html");
             }
         });
     });
@@ -83,14 +83,13 @@ $(function () {
 
                 rooms.map(room => {
                     const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';  // Fallback image if no image is available
-
                     const card = `
-    <div class="col-12 col-md-4 col-lg-4 mb-4"> <!-- Change col-md-6 and col-lg-6 to col-md-4 and col-lg-4 -->
+    <div class="col-12 col-md-4 col-lg-4 mb-4"> 
         <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
             
             <!-- Card Header -->
-            <div class="card-header p-0" style="height: 200px; border-bottom: 1px solid #ddd;" id="showCard">
-                <img src="${roomImage}" class="card-img-top room-card-img" alt="Room Image" style="width: 100%; height: 100%; object-fit: cover;" data-room-id="${room.RoomId}">
+            <div class="card-header p-0" style="height: 200px; border-bottom: 1px solid #ddd;">
+                <img src="${roomImage}" class="card-img-top room-card-img showCard" alt="Room Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" data-room-id="${room.RoomId}">
             </div>
             
             <!-- Card Body -->
@@ -99,28 +98,24 @@ $(function () {
                 
                 <!-- Row for Price, Property Type, Bedrooms, and Bathrooms -->
                 <div class="row">
-                    <!-- Price -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;">Price</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px margin-bottom: 7px;">$${room.Price}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px;">Price</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">₹${room.Price}</p> 
                     </div>
-                    <!-- Property Type -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p> 
                     </div>
                 </div>
                 
                 <div class="row">
-                    <!-- Bedrooms -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p> 
                     </div>
-                    <!-- Bathrooms -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p> 
                     </div>
                 </div>
             </div>
@@ -132,32 +127,28 @@ $(function () {
             </div>
     
         </div>
-    </div>
-`;
+    </div>`;
 
-
-                    // Append the card to the rooms container
                     $("#roomsContainer").append(card);
                 });
-
             }
         });
     }
 
     $(document).on("click", "#btnLogin", () => {
-        var userid = $("#txtLUserId").val();
+        var UserId = $("#txtLUserId").val();
         var password = $("#txtLPassword").val();
 
         $.ajax({
             method: "get",
             url: "http://127.0.0.1:5000/users",
             success: (users) => {
-                var user = users.find(rec => rec.UserId == userid);
+                var user = users.find(rec => rec.UserId == UserId);
                 if (user) {
                     if (user.Password == password) {
-                        $.cookie("userid", user.UserId);
+                        $.cookie("UserId", user.UserId);
                         $.cookie("username", user.UserName);
-                        loadView("../public/user-dashboard.html");
+                        loadView("/public/user-dashboard.html");
                         GetRooms(user.UserId);
                     } else {
                         alert("Invalid password");
@@ -171,51 +162,53 @@ $(function () {
 
     $(document).on("click", "#btnSignout", () => {
         $.removeCookie("username");
-        $.removeCookie("userid");
-        loadView("../public/login.html");
+        $.removeCookie("UserId");
+        loadView("/public/login.html");
     });
 
     $(document).on("click", "#btnNewRoom", () => {
-        loadView("../public/add-room.html");
+        loadView("/public/add-room.html");
     });
 
     $(document).on("click", "#btnCancelRoom", () => {
-        loadView("../public/user-dashboard.html");
-        GetRooms($.cookie("userid"));
+        loadView("/public/user-dashboard.html");
+        GetRooms($.cookie("UserId"));
     });
 
     // Prevent any form submissions globally
-    $(document).on('submit', 'form', function(e) {
+    $(document).on('submit', 'form', function (e) {
         e.preventDefault();
         return false;
     });
 
     // Handle room addition
-    $(document).on('click', '#btnAddRoom', function(e) {
+    $(document).on('click', '#btnAddRoom', function (e) {
         e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
-        
+
         // Create FormData object
         const formData = new FormData();
-        
+
         // Get file input
         const fileInput = $('#fileRoomImage')[0];
         if (fileInput && fileInput.files[0]) {
             formData.append('image', fileInput.files[0]);
         }
-        
+
         // Add form data
         formData.append('RoomId', $('#txtRoomId').val());
         formData.append('Description', $('#txtDescription').val());
         formData.append('Price', $('#txtPrice').val());
         formData.append('Bedrooms', $('#txtBedrooms').val());
         formData.append('Bathrooms', $('#txtBathrooms').val());
-        formData.append('Furnished', $('#chkFurnished').prop('checked'));
-        formData.append('Parking', $('#chkParking').prop('checked'));
-        formData.append('BachelorsAllowed', $('#chkBachelorsAllowed').prop('checked'));
+        formData.append('Furnished', $('#chkFurnished').prop('checked') ? "Yes" : "No");
+        formData.append('Parking', $('#chkParking').prop('checked') ? "Yes" : "No");
+        formData.append('BachelorsAllowed', $('#chkBachelorsAllowed').prop('checked') ? "Yes" : "No");
         formData.append('PropertyType', $('#selPropertyType').val());
-        formData.append('UserId', $.cookie('userid'));
+        formData.append('Contact', $('#txtContact').val());
+        formData.append('UserId', $.cookie('UserId'));
+
 
         // Send AJAX request
         $.ajax({
@@ -224,11 +217,11 @@ $(function () {
             data: formData,
             processData: false,
             contentType: false,
-            success: function() {
+            success: function () {
                 alert('Room Added Successfully');
-                window.location.href = '../public/user-dashboard.html';
+                window.location.href = '/public/user-dashboard.html';
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 console.error('Error adding room:', error);
                 alert('Error adding room. Please try again.');
             }
@@ -238,87 +231,98 @@ $(function () {
     });
 
     $(document).on("click", "#btnEdit", (e) => {
-        loadView("../public/edit-room.html");
+        const roomId = e.target.value;
+        if (!roomId) {
+            console.error("No room ID found");
+            return;
+        }
+
+        loadView("/public/edit-room.html");
         $.ajax({
             method: "get",
-            url: `http://127.0.0.1:5000/get-room/${e.target.value}`,
+            url: `http://127.0.0.1:5000/get-room/${roomId}`,
             success: (room) => {
-                // Populate the form fields with the room data
-                $("#txtRoomId").val(room.RoomId);  // Room ID (could be hidden)
-                $("#txtDescription").val(room.Description);  // Room Description
-                $("#txtPrice").val(room.Price);  // Room Price
-                $("#txtBedrooms").val(room.Bedrooms);  // Number of Bedrooms
-                $("#txtBathrooms").val(room.Bathrooms);  // Number of Bathrooms
-                $("#chkFurnished").prop('checked', room.Furnished); // Furnished checkbox
-                $("#chkParking").prop('checked', room.Parking); // Parking checkbox
-                $("#chkBachelorsAllowed").prop('checked', room.BachelorsAllowed); // Bachelors Allowed checkbox
-                $("#selPropertyType").val(room.PropertyType); // Property Type dropdown
+                if (!room) {
+                    console.error("No room data received");
+                    return;
+                }
 
-                if (room.image) {
-                    const roomImage = `http://127.0.0.1:5000/${room.image}`;
-                    $("#imgRoomPreview").attr("src", roomImage).show();  // Show the room image preview
-                } else {
-                    $("#imgRoomPreview").hide();  // Hide the image preview if there's no image
+                try {
+                    // Populate the form fields with the room data
+                    $("#txtRoomId").val(room.RoomId);
+                    $("#txtDescription").val(room.Description);
+                    $("#txtPrice").val(room.Price);
+                    $("#txtBedrooms").val(room.Bedrooms);
+                    $("#txtBathrooms").val(room.Bathrooms);
+                    $("#chkFurnished").prop('checked', room.Furnished === "Yes");
+                    $("#chkParking").prop('checked', room.Parking === "Yes");
+                    $("#chkBachelorsAllowed").prop('checked', room.BachelorsAllowed === "Yes");
+                    $("#selPropertyType").val(room.PropertyType);
+                    $("#txtContact").val(room.Contact);
+
+                    if (room.image) {
+                        const roomImage = `http://127.0.0.1:5000/${room.image}`;
+                        $("#imgRoomPreview").attr("src", roomImage).show();
+                    } else {
+                        $("#imgRoomPreview").hide();
+                    }
+                } catch (error) {
+                    console.error("Error populating form:", error);
+                    alert("Error loading room details. Please try again.");
                 }
             },
             error: (err) => {
-                console.error("Error retrieving room data: ", err);
+                console.error("Error retrieving room data:", err);
                 alert("Failed to load room details.");
             }
         });
     });
 
     $(document).on("click", "#btnSave", () => {
-        var room = {
-            RoomId: $("#txtRoomId").val(),
-            Description: $("#txtDescription").val(),
-            Price: $("#txtPrice").val(),
-            Bedrooms: $("#txtBedrooms").val(),
-            Bathrooms: $("#txtBathrooms").val(),
-            Furnished: $("#chkFurnished").prop('checked'),
-            Parking: $("#chkParking").prop('checked'),
-            BachelorsAllowed: $("#chkBachelorsAllowed").prop('checked'),
-            PropertyType: $("#selPropertyType").val(),
-            UserId: $.cookie("userid")
-        };
+        const roomId = $("#txtRoomId").val();
+        if (!roomId) {
+            console.error("No room ID found");
+            return;
+        }
 
-        var formData = new FormData();
-        formData.append("RoomId", room.RoomId);
-        formData.append("Description", room.Description);
-        formData.append("Price", room.Price);
-        formData.append("Bedrooms", room.Bedrooms);
-        formData.append("Bathrooms", room.Bathrooms);
-        formData.append("Furnished", room.Furnished);
-        formData.append("Parking", room.Parking);
-        formData.append("BachelorsAllowed", room.BachelorsAllowed);
-        formData.append("PropertyType", room.PropertyType);
-        formData.append("UserId", room.UserId);
+        const formData = new FormData();
+        formData.append("RoomId", roomId);
+        formData.append("Description", $("#txtDescription").val());
+        formData.append("Price", $("#txtPrice").val());
+        formData.append("Bedrooms", $("#txtBedrooms").val());
+        formData.append("Bathrooms", $("#txtBathrooms").val());
+        formData.append("Furnished", $("#chkFurnished").prop('checked')); // Boolean value
+        formData.append("Parking", $("#chkParking").prop('checked')); // Boolean value
+        formData.append("BachelorsAllowed", $("#chkBachelorsAllowed").prop('checked')); // Boolean value
+        formData.append("PropertyType", $("#selPropertyType").val());
+        formData.append("Contact", $("#txtContact").val());
+        formData.append("UserId", $.cookie("UserId"));
 
-        var fileInput = $("#fileRoomImage")[0].files[0];
+        const fileInput = $("#fileRoomImage")[0].files[0];
         if (fileInput) {
-            formData.append("image", fileInput); // Append image to FormData
+            formData.append("image", fileInput);
         }
 
         $.ajax({
             method: "put",
-            url: `http://127.0.0.1:5000/edit-room/${room.RoomId}`,
+            url: `http://127.0.0.1:5000/edit-room/${roomId}`,
             data: formData,
             processData: false,
             contentType: false,
             success: () => {
                 alert("Room Updated Successfully");
-                loadView("../public/user-dashboard.html");
-                GetRooms($.cookie("userid"));
+                loadView("/public/user-dashboard.html");
+                GetRooms($.cookie("UserId"));
             },
             error: (err) => {
-                console.error("Error updating room: ", err);
-                alert("There was an error while updating the room. Please try again.");
+                console.error("Error updating room:", err);
+                alert("Error updating room. Please try again.");
             }
         });
     });
 
     $(document).on("click", "#btnDelete", (e) => {
-        loadView("../public/delete-room.html");
+        loadView("/public/delete-room.html");
         const roomId = e.target.value;
 
         $.ajax({
@@ -328,10 +332,11 @@ $(function () {
                 $("#txtDRoomId").val(room.RoomId);
                 $("#lblDRoomTitle").text(room.Description);
                 $("#lblDRoomDescription").text(room.Description);
-                $("#lblDRoomPrice").text(`$${room.Price}`);
+                $("#lblDRoomPrice").text(`₹${room.Price}`);
                 $("#lblDRoomBedrooms").text(room.Bedrooms);
                 $("#lblDRoomBathrooms").text(room.Bathrooms);
                 $("#lblDRoomPropertyType").text(room.PropertyType);
+                $("#lblDContact").text(room.Contact);
             }
         });
     });
@@ -344,56 +349,88 @@ $(function () {
             url: `http://127.0.0.1:5000/delete-room/${roomId}`,
             success: () => {
                 alert("Room Deleted Successfully");
-                loadView("../public/user-dashboard.html");
-                GetRooms($.cookie("userid"));
+                loadView("/public/user-dashboard.html");
+                GetRooms($.cookie("UserId"));
             },
             error: (err) => {
-                console.error("Error deleting room: ", err);
+                console.error("Error deleting room:", err);
                 alert("There was an error while deleting the room. Please try again.");
             }
         });
     });
 
     $(document).on("click", "#btnCancelDeleteRoom", () => {
-        loadView("../public/user-dashboard.html");
-        GetRooms($.cookie("userid"));
+        loadView("/public/user-dashboard.html");
+        GetRooms($.cookie("UserId"));
     });
 
     $(document).on("click", "#btnEditCancel", () => {
-        loadView("../public/user-dashboard.html");
-        GetRooms($.cookie("userid"));
+        loadView("/public/user-dashboard.html");
+        GetRooms($.cookie("UserId"));
     });
-    $(document).on("click", "#showCard", (e) => {
-        const roomId = $(e.target).data("room-id");  // Get the room ID from the clicked card
+    $(document).on("click", ".showCard", (e) => {
+        const roomId = $(e.target).data("room-id");  // Get the room ID directly from the clicked image
 
-        loadView("../public/show-room.html"); // Load the show-room page
+        if (!roomId) {
+            console.error("No room ID found on clicked element");
+            return;
+        }
 
-        // Now, make an AJAX request to fetch the room details
+        // Load the show-room page and wait for it to complete before making the AJAX request
         $.ajax({
             method: "get",
-            url: `http://127.0.0.1:5000/get-room/${roomId}`,
-            success: (room) => {
-                // Populate the page with room details
-                $("#lblRoomId").text(room.RoomId);  // Room ID
-                $("#lblRoomDescription").text(room.Description);  // Room Description
-                $("#lblRoomPrice").text(`$${room.Price}`);  // Room Price
-                $("#lblRoomBedrooms").text(room.Bedrooms);  // Number of Bedrooms
-                $("#lblRoomBathrooms").text(room.Bathrooms);  // Number of Bathrooms
-                $("#lblRoomPropertyType").text(room.PropertyType);  // Property Type
+            url: "/public/show-room.html",
+            success: (resp) => {
+                $("section").html(resp);
 
-                // Display the image
-                const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';
-                $("#imgRoomPreview").attr("src", roomImage).show();  // Show the image in the img tag
+                // Now that the page is loaded, make the AJAX request for room details
+                $.ajax({
+                    method: "get",
+                    url: `http://127.0.0.1:5000/get-room/${roomId}`,
+                    success: (room) => {
+                        if (!room) {
+                            console.error("No room data received");
+                            alert("Failed to load room details. Please try again.");
+                            return;
+                        }
+
+                        try {
+                            // Populate the page with room details
+                            $("#lblRoomId").text(room.RoomId || '');  // Room ID
+                            $("#lblRoomDescription").text(room.Description || '');  // Room Description
+                            $("#lblRoomPrice").text(room.Price ? `₹${room.Price}` : '');  // Room Price
+                            $("#lblRoomBedrooms").text(room.Bedrooms ? `${room.Bedrooms} Bedrooms` : '');  // Number of Bedrooms
+                            $("#lblRoomBathrooms").text(room.Bathrooms ? `${room.Bathrooms} Bathrooms` : '');  // Number of Bathrooms
+                            $("#lblRoomPropertyType").text(room.PropertyType || '');  // Property Type
+                            $("#lblRoomFurnished").text(room.Furnished ? 'Yes' : 'No');  // Furnished status
+                            $("#lblRoomParking").text(room.Parking ? 'Yes' : 'No');  // Parking status
+                            $("#lblRoomBachelors").text(room.BachelorsAllowed ? 'Yes' : 'No');  // Bachelors Allowed status
+                            $("#lblContact").text(room.Contact || '');  // Contact Info
+
+                            // Display the image
+                            const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';
+                            $("#imgRoomPreview").attr("src", roomImage).show();  // Show the image in the img tag
+                        } catch (error) {
+                            console.error("Error populating room details:", error);
+                            alert("Error displaying room details. Please try again.");
+                        }
+                    },
+                    error: (err) => {
+                        console.error("Error fetching room details:", err);
+                        alert("Failed to load room details. Please try again.");
+                    }
+                });
             },
             error: (err) => {
-                console.error("Error retrieving room details: ", err);
-                alert("Failed to load room details.");
+                console.error("Error loading show room page:", err);
+                alert("Failed to load room view page. Please try again.");
             }
         });
     });
+
     $(document).on("click", "#btnCloseRoomDetails", () => {
-        loadView("../public/user-dashboard.html");
-        GetRooms($.cookie("userid"));
+        loadView("/public/user-dashboard.html");
+        GetRooms($.cookie("UserId"));
     });
 
     $('#priceRange').on('input', function () {

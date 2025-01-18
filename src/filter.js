@@ -2,7 +2,7 @@ $(function () {
     $(document).on("input", "#priceRange", function (e) {
         const priceValue = e.target.value;
         // Update the current price displayed in the label and span
-        $("#currentPrice").text("$" + priceValue); // Update the label for the price
+        $("#currentPrice").text("₹" + priceValue); // Update the label for the price
     })
     // When the "Apply Filters" button is clicked
     $(document).on("click", "#btnApplyFilters", function () {
@@ -29,7 +29,7 @@ $(function () {
 
         // Send an AJAX request to the backend to get the filtered rooms
         $.ajax({
-            url: "http://127.0.0.1:5000/get-filtered-rooms",  // Corrected API endpoint
+            url: "http://127.0.0.1:5000/get-filtered-rooms",
             type: "GET",
             data: query,
             success: function (rooms) {
@@ -43,7 +43,7 @@ $(function () {
                 } else {
                     // Loop through the rooms and render them
                     rooms.forEach(function (room) {
-                        const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';  // Fallback image if no image is available
+                        const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';
 
                         const card = `
     <div class="col-12 col-md-6 col-lg-6 mb-4">
@@ -62,26 +62,26 @@ $(function () {
                 <div class="row">
                     <!-- Price -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;">Price</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px margin-bottom: 7px;">$${room.Price}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px;">Price</p>
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">₹${room.Price}</p>
                     </div>
                     <!-- Property Type -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p>
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p>
                     </div>
                 </div>
                 
                 <div class="row">
                     <!-- Bedrooms -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p>
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p>
                     </div>
                     <!-- Bathrooms -->
                     <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p> <!-- Reduced margin-bottom -->
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p> <!-- Removed top margin -->
+                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p>
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p>
                     </div>
                 </div>
             </div>
@@ -91,11 +91,8 @@ $(function () {
                 <button value="${room.RoomId}" class="btn btn-warning w-50 bi bi-pen-fill" id="btnEdit" style="margin-right: 5px; padding: 5px 10px;">Edit</button>
                 <button value="${room.RoomId}" class="btn btn-danger w-50 bi bi-trash-fill" id="btnDelete" style="padding: 5px 10px;">Delete</button>
             </div>
-    
         </div>
-    </div>
-`;
-
+    </div>`;
 
                         $("#roomsContainer").append(card);
                     });
@@ -105,7 +102,10 @@ $(function () {
                 console.error("Error fetching rooms:", err);
             }
         });
-
     });
-
 })
+
+$(document).on('change', "#hourlyRate",function () {
+    const price = $(this).val();
+    $('#currentHourlyRate').text(price);
+});

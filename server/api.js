@@ -3,9 +3,35 @@ var app = express();
 var cors = require('cors');
 var multer = require('multer');
 var path = require('path');
+require('dotenv').config();
 
 var mongoClient = require("mongodb").MongoClient;
-var conString = "mongodb://127.0.0.1:27017";
+const conString = process.env.MONGO_URL;
+if (!conString) {
+    console.error("MongoDB connection string not found in environment variables!");
+    process.exit(1);
+}
+let dbClient = null;
+let db = null;
+async function connectDB() {
+    try {
+        if (!dbClient) {
+            dbClient = await mongoClient.connect(conString);
+            db = dbClient.db("serviceHunt");
+            console.log("Successfully connected to MongoDB database: serviceHunt");
+        }
+        return db;
+    } catch (err) {
+        console.error("Failed to connect to MongoDB:", err);
+        throw err;
+    }
+}
+app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')));
+app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
+app.use('/src', express.static(path.join(__dirname, '..', 'src', 'project.js')));
+app.use('/src', express.static(path.join(__dirname, '..', 'src', 'filter.js')));
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -65,9 +91,10 @@ app.post("/add-room", upload.single('image'), (req, res) => {
         Bathrooms: parseInt(req.body.Bathrooms),
         Parking: req.body.Parking === 'true',
         BachelorsAllowed: req.body.BachelorsAllowed === 'true',
-        PropertyType: req.body.PropertyType,
+        PropertyType: req.body['Property Type'],
+        Contact: req.body['Contact Info'],
+        UserId: parseInt(req.body.UserId),
         image: req.file ? req.file.path : null,
-        UserId: parseInt(req.body.UserId)
     };
     mongoClient.connect(conString).then(clientObj => {
         clientObj.db("roomDb").collection("rooms").insertOne(room).then(() => {
@@ -76,6 +103,7 @@ app.post("/add-room", upload.single('image'), (req, res) => {
         });
     });
 })
+
 app.get("/get-rooms/:UserId", (req, res) => {
     mongoClient.connect(conString).then(clientObj => {
         var db = clientObj.db("roomDb");
@@ -96,17 +124,17 @@ app.get("/get-room/:RoomId", (req, res) => {
 
 app.put("/edit-room/:RoomId", upload.single('image'), (req, res) => {
     var room = {
-        RoomId: parseInt(req.body.RoomId),
         Description: req.body.Description,
         Price: parseInt(req.body.Price),
         Bedrooms: parseInt(req.body.Bedrooms),
-        Furnished: req.body.Furnished === 'true',
         Bathrooms: parseInt(req.body.Bathrooms),
+        Furnished: req.body.Furnished === 'true',
         Parking: req.body.Parking === 'true',
         BachelorsAllowed: req.body.BachelorsAllowed === 'true',
-        PropertyType: req.body.PropertyType,
+        PropertyType: req.body['Property Type'],
+        Contact: req.body['Contact Info'],
+        UserId: parseInt(req.body.UserId),
         image: req.file ? req.file.path : null,
-        UserId: parseInt(req.body.UserId)
     };
     mongoClient.connect(conString).then(clientObj => {
         var db = clientObj.db("roomDb");
@@ -115,7 +143,7 @@ app.put("/edit-room/:RoomId", upload.single('image'), (req, res) => {
             { $set: room }
         ).then(() => {
             console.log('Room Updated..');
-            res.send(room);
+            res.json({ message: 'Room Updated Successfully' });
         });
     });
 });

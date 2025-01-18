@@ -1,13 +1,14 @@
-body{
+body {
     background-image: url("../public/images/background.jpg");
     background-size: cover;
     height: 100vh;
+    overflow: hidden; /* This prevents the vertical scrollbar */
+    margin: 0; /* This removes default margin */
 }
-.shade{
-    background-color: rgba(0,0,0,0.3);
+.shade {
+    background-color: rgba(0, 0, 0, 0.3);
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
 }
-

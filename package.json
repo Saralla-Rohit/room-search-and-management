@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "api":"node .\\server\\api.js"
+    "api": "node .\\server\\api.js"
   },
   "author": "",
   "license": "ISC",
@@ -13,6 +13,7 @@
     "bootstrap": "^5.3.3",
     "bootstrap-icons": "^1.11.3",
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "jquery": "^3.7.1",
     "jquery.cookie": "^1.4.1",
