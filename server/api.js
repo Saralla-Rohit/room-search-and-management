@@ -5,6 +5,18 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
+// Enable CORS for all routes
+app.use(cors({
+    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com"],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+
+// Parse JSON and URL-encoded bodies
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 var mongoClient = require("mongodb").MongoClient;
 const conString = process.env.MONGO_URL;
 if (!conString) {
@@ -54,9 +66,6 @@ app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
     }
 }));
 
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, 'uploads/'); // Store images in 'uploads' directory
@@ -67,13 +76,6 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 
-app.use(cors({
-    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com"],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 200
-}));
 app.get("/", (req, res) => {
     res.send("Home")
 })
