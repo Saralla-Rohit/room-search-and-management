@@ -1,10 +1,14 @@
 {
+  "engines":{
+    "node":"20.11.1"
+  },
   "name": "own",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "api": "node .\\server\\api.js"
+    "api": "node server/api.js",
+    "start":"node server/api.js"
   },
   "author": "",
   "license": "ISC",
