@@ -5,8 +5,16 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
-// Enable CORS for all routes
-app.use(cors());  // Allow all origins temporarily for debugging
+// CORS middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', 'https://room-search-and-management.onrender.com');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
@@ -218,76 +226,34 @@ app.delete("/delete-room/:RoomId", async (req, res) => {
 
 app.get("/get-filtered-rooms", async (req, res) => {
     console.log('GET /get-filtered-rooms - Request received');
+    console.log('Query parameters:', req.query);
+    
     try {
-        const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
-        console.log('Received filter parameters:', req.query);
+        const db = await connectDB();
+        if (!db) {
+            console.error('Database connection failed');
+            return res.status(500).json({ error: "Database connection failed" });
+        }
 
+        const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
         let filter = {};
 
-        // Apply price filter if provided
-        if (price && !isNaN(price)) {
-            const priceValue = parseInt(price);
-            filter.Price = { $lte: priceValue };  // Less than or equal to the specified price
-            console.log('Added price filter:', priceValue);
-        }
+        if (price) filter.Price = { $lte: parseInt(price) };
+        if (bedrooms) filter.Bedrooms = parseInt(bedrooms);
+        if (bathrooms) filter.Bathrooms = parseInt(bathrooms);
+        if (propertyType) filter.PropertyType = propertyType;
+        if (bachelorsAllowed) filter.BachelorsAllowed = bachelorsAllowed === 'true';
+        if (furnished) filter.Furnished = furnished === 'true';
+        if (parking) filter.Parking = parking === 'true';
 
-        // Handle bedrooms filter
-        if (bedrooms && bedrooms !== '') {
-            if (bedrooms === '4') {
-                filter.Bedrooms = { $gte: 4 };  // 4 or more bedrooms
-            } else {
-                filter.Bedrooms = parseInt(bedrooms);  // Exact number of bedrooms
-            }
-            console.log('Added bedrooms filter:', filter.Bedrooms);
-        }
-
-        // Handle bathrooms filter
-        if (bathrooms && bathrooms !== '') {
-            if (bathrooms === '4') {
-                filter.Bathrooms = { $gte: 4 };  // 4 or more bathrooms
-            } else {
-                filter.Bathrooms = parseInt(bathrooms);  // Exact number of bathrooms
-            }
-            console.log('Added bathrooms filter:', filter.Bathrooms);
-        }
-
-        // Property type filter
-        if (propertyType && propertyType !== '') {
-            filter.PropertyType = propertyType;  // Exact match for property type
-            console.log('Added property type filter:', propertyType);
-        }
-
-        // Handle boolean filters
-        if (bachelorsAllowed === 'true' || bachelorsAllowed === 'false') {
-            filter.BachelorsAllowed = bachelorsAllowed === 'true';
-            console.log('Added bachelors allowed filter:', filter.BachelorsAllowed);
-        }
-
-        if (furnished === 'true' || furnished === 'false') {
-            filter.Furnished = furnished === 'true';
-            console.log('Added furnished filter:', filter.Furnished);
-        }
-
-        if (parking === 'true' || parking === 'false') {
-            filter.Parking = parking === 'true';
-            console.log('Added parking filter:', filter.Parking);
-        }
-
-        console.log('Final MongoDB filter:', JSON.stringify(filter, null, 2));
-
-        const db = await connectDB();
-        console.log('Connected to database');
-        
+        console.log('Applying filter:', JSON.stringify(filter));
         const rooms = await db.collection("rooms").find(filter).toArray();
-        console.log(`Found ${rooms.length} rooms matching the criteria`);
+        console.log(`Found ${rooms.length} rooms`);
         
         res.json(rooms);
     } catch (err) {
-        console.error('Error in get-filtered-rooms:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
+        console.error('Filter error:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
