@@ -12,22 +12,22 @@ $(function () {
     // Check if user is logged in
     const UserId = $.cookie("UserId");
     if (UserId) {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms(UserId);
     } else {
-        loadView("/public/home.html");
+        loadView("/home.html");
     }
 
     $(document).on("click", "#btnCreateAccount", () => {
-        loadView("/public/register.html");
+        loadView("/register.html");
     });
 
     $(document).on("click", "#btnSignin", () => {
-        loadView("/public/login.html");
+        loadView("/login.html");
     });
 
     $(document).on("click", "#btnCancel", () => {
-        loadView("/public/home.html");
+        loadView("/home.html");
     });
 
     $(document).on("click", "#btnRegister", () => {
@@ -45,7 +45,7 @@ $(function () {
             data: user,
             success: () => {
                 alert("Registered Successfully..");
-                loadView("/public/user-login.html");
+                loadView("/user-login.html");
             }
         });
     });
@@ -148,7 +148,7 @@ $(function () {
                     if (user.Password == password) {
                         $.cookie("UserId", user.UserId);
                         $.cookie("username", user.UserName);
-                        loadView("/public/user-dashboard.html");
+                        loadView("/user-dashboard.html");
                         GetRooms(user.UserId);
                     } else {
                         alert("Invalid password");
@@ -163,15 +163,15 @@ $(function () {
     $(document).on("click", "#btnSignout", () => {
         $.removeCookie("username");
         $.removeCookie("UserId");
-        loadView("/public/login.html");
+        loadView("/login.html");
     });
 
     $(document).on("click", "#btnNewRoom", () => {
-        loadView("/public/add-room.html");
+        loadView("/add-room.html");
     });
 
     $(document).on("click", "#btnCancelRoom", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
@@ -224,7 +224,7 @@ $(function () {
             success: function (response) {
                 console.log('Room added successfully:', response);
                 alert('Room Added Successfully');
-                loadView("/public/user-dashboard.html");
+                loadView("/user-dashboard.html");
                 GetRooms($.cookie('UserId'));
             },
             error: function (xhr, status, error) {
@@ -244,7 +244,7 @@ $(function () {
             return;
         }
 
-        loadView("/public/edit-room.html");
+        loadView("/edit-room.html");
         $.ajax({
             method: "get",
             url: `http://127.0.0.1:5000/get-room/${roomId}`,
@@ -318,7 +318,7 @@ $(function () {
             contentType: false,
             success: () => {
                 alert("Room Updated Successfully");
-                loadView("/public/user-dashboard.html");
+                loadView("/user-dashboard.html");
                 GetRooms($.cookie("UserId"));
             },
             error: (err) => {
@@ -329,7 +329,7 @@ $(function () {
     });
 
     $(document).on("click", "#btnDelete", (e) => {
-        loadView("/public/delete-room.html");
+        loadView("/delete-room.html");
         const roomId = e.target.value;
 
         $.ajax({
@@ -356,7 +356,7 @@ $(function () {
             url: `http://127.0.0.1:5000/delete-room/${roomId}`,
             success: () => {
                 alert("Room Deleted Successfully");
-                loadView("/public/user-dashboard.html");
+                loadView("/user-dashboard.html");
                 GetRooms($.cookie("UserId"));
             },
             error: (err) => {
@@ -367,12 +367,12 @@ $(function () {
     });
 
     $(document).on("click", "#btnCancelDeleteRoom", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
     $(document).on("click", "#btnEditCancel", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
     $(document).on("click", ".showCard", (e) => {
@@ -386,7 +386,7 @@ $(function () {
         // Load the show-room page and wait for it to complete before making the AJAX request
         $.ajax({
             method: "get",
-            url: "/public/show-room.html",
+            url: "/show-room.html",
             success: (resp) => {
                 $("section").html(resp);
 
@@ -436,7 +436,7 @@ $(function () {
     });
 
     $(document).on("click", "#btnCloseRoomDetails", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
