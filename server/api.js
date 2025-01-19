@@ -59,10 +59,7 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '..')));
-
-// Serve static files with proper MIME types
+// Serve static files with proper MIME types for src directory
 app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
     setHeaders: (res, filepath) => {
         if (filepath.endsWith('.js')) {
@@ -73,13 +70,15 @@ app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
     }
 }));
 
-// Serve other static files
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+// Serve public directory as root
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Serve other static directories
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 // Serve index.html for root route and any other routes (for SPA)
 app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 // Filter rooms endpoint
