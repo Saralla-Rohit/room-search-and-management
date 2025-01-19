@@ -1,6 +1,6 @@
 // Define API URL based on environment
 const API_URL = window.location.hostname === 'room-search-and-management.onrender.com' 
-    ? 'https://roomify-backend.onrender.com'  // Production backend URL
+    ? 'https://your-actual-backend-url.onrender.com'  // Production backend URL
     : 'http://127.0.0.1:5000';               // Local development backend URL
 
 $(function () {
@@ -128,9 +128,17 @@ $(function () {
                     });
                 }
             },
-            error: function (xhr, status, error) {
-                console.error('Error fetching filtered rooms:', error);
-                $("#roomsContainer").empty().append('<p class="text-center w-100 text-danger">Error fetching rooms. Please try again.</p>');
+            error: function(xhr, status, error) {
+                console.error('Error fetching filtered rooms:', {
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    responseText: xhr.responseText
+                });
+                $("#roomsContainer").empty().append(
+                    '<div class="alert alert-danger" role="alert">' +
+                    'Error loading rooms. Please try again later.' +
+                    '</div>'
+                );
             }
         });
     });

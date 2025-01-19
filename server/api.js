@@ -17,8 +17,8 @@ async function connectDB() {
     try {
         if (!dbClient) {
             dbClient = await mongoClient.connect(conString);
-            db = dbClient.db("serviceHunt");
-            console.log("Successfully connected to MongoDB database: serviceHunt");
+            db = dbClient.db("roomDb");  // Use consistent database name
+            console.log("Successfully connected to MongoDB database: roomDb");
         }
         return db;
     } catch (err) {
@@ -26,6 +26,7 @@ async function connectDB() {
         throw err;
     }
 }
+
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
@@ -58,7 +59,7 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 app.use(cors({
-    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com"],
+    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com", "https://roomify-backend.onrender.com"],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
@@ -66,16 +67,20 @@ app.use(cors({
 app.get("/", (req, res) => {
     res.send("Home")
 })
-app.get("/users", (req, res) => {
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb")
-        db.collection("users").find({}).toArray().then(user => {
-            res.json(user)
-            console.log(user)
-        })
-    })
+app.get("/users", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const users = await db.collection("users").find({}).toArray();
+        res.json(users);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
+        });
+    }
 })
-app.post("/register-user", (req, res) => {
+app.post("/register-user", async (req, res) => {
     var user = {
         UserId: parseInt(req.body.UserId),
         UserName: req.body.UserName,
@@ -83,17 +88,21 @@ app.post("/register-user", (req, res) => {
         Password: req.body.Password,
         Mobile: req.body.Mobile
     }
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb")
-        db.collection("users").insertOne(user).then(() => {
-            console.log("User Registered")
-            res.json(user)
-
-        })
-    })
+    try {
+        const db = await connectDB();
+        await db.collection("users").insertOne(user);
+        console.log("User Registered")
+        res.json(user)
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
+        });
+    }
 })
 
-app.post("/add-room", upload.single('image'), (req, res) => {
+app.post("/add-room", upload.single('image'), async (req, res) => {
     var room = {
         RoomId: parseInt(req.body.RoomId),
         Description: req.body.Description,
@@ -113,39 +122,48 @@ app.post("/add-room", upload.single('image'), (req, res) => {
     console.log('Received room data:', req.body);
     console.log('Processed room object:', room);
 
-    mongoClient.connect(conString).then(clientObj => {
-        clientObj.db("roomDb").collection("rooms").insertOne(room).then(() => {
-            console.log('Room Added Successfully');
-            res.json({ success: true, room });
-        }).catch(err => {
-            console.error('Error adding room:', err);
-            res.status(500).json({ success: false, error: err.message });
+    try {
+        const db = await connectDB();
+        await db.collection("rooms").insertOne(room);
+        console.log('Room Added Successfully');
+        res.json({ success: true, room });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
         });
-    }).catch(err => {
-        console.error('Database connection error:', err);
-        res.status(500).json({ success: false, error: err.message });
-    });
+    }
 });
 
-app.get("/get-rooms/:UserId", (req, res) => {
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb");
-        db.collection("rooms").find({ UserId: parseInt(req.params.UserId) }).toArray().then(room => {
-            res.json(room)
-            console.log(room)
-        })
-    })
+app.get("/get-rooms/:UserId", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const rooms = await db.collection("rooms").find({ UserId: parseInt(req.params.UserId) }).toArray();
+        res.json(rooms);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
+        });
+    }
 })
-app.get("/get-room/:RoomId", (req, res) => {
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb");
-        db.collection("rooms").findOne({ RoomId: parseInt(req.params.RoomId) }).then(room => {
-            res.json(room);  // Sending the appointment data as JSON response
+app.get("/get-room/:RoomId", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const room = await db.collection("rooms").findOne({ RoomId: parseInt(req.params.RoomId) });
+        res.json(room);  // Sending the appointment data as JSON response
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
         });
-    });
+    }
 });
 
-app.put("/edit-room/:RoomId", upload.single('image'), (req, res) => {
+app.put("/edit-room/:RoomId", upload.single('image'), async (req, res) => {
     var room = {
         Description: req.body.Description,
         Price: parseInt(req.body.Price),
@@ -159,29 +177,39 @@ app.put("/edit-room/:RoomId", upload.single('image'), (req, res) => {
         UserId: parseInt(req.body.UserId),
         image: req.file ? req.file.path : null,
     };
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb");
-        db.collection("rooms").updateOne(
+    try {
+        const db = await connectDB();
+        await db.collection("rooms").updateOne(
             { RoomId: parseInt(req.params.RoomId) },
             { $set: room }
-        ).then(() => {
-            console.log('Room Updated..');
-            res.json({ message: 'Room Updated Successfully' });
+        );
+        console.log('Room Updated..');
+        res.json({ message: 'Room Updated Successfully' });
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
         });
-    });
+    }
 });
 
-app.delete("/delete-room/:RoomId", (req, res) => {
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb");
-        db.collection("rooms").deleteOne({ RoomId: parseInt(req.params.RoomId) }).then(() => {
-            console.log('Room deleted..');
-            res.send(`Room id : ${req.params.RoomId} deleted`);
+app.delete("/delete-room/:RoomId", async (req, res) => {
+    try {
+        const db = await connectDB();
+        await db.collection("rooms").deleteOne({ RoomId: parseInt(req.params.RoomId) });
+        console.log('Room deleted..');
+        res.send(`Room id : ${req.params.RoomId} deleted`);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({
+            error: "Error processing request",
+            details: err.message
         });
-    });
+    }
 });
 
-app.get("/get-filtered-rooms", (req, res) => {
+app.get("/get-filtered-rooms", async (req, res) => {
     const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
     console.log('Received filter parameters:', req.query);
 
@@ -231,28 +259,18 @@ app.get("/get-filtered-rooms", (req, res) => {
 
     console.log('Applied filters:', filter);
 
-    // Connect to MongoDB and fetch the filtered rooms
-    mongoClient.connect(conString).then(clientObj => {
-        var db = clientObj.db("roomDb");
-
-        // Fetch the rooms based on the constructed filter
-        db.collection("rooms").find(filter).toArray().then(rooms => {
-            console.log(`Found ${rooms.length} rooms matching the criteria`);
-            res.json(rooms);
-        }).catch(err => {
-            console.error('Error fetching rooms:', err);
-            res.status(500).json({
-                error: "Error fetching rooms",
-                details: err.message
-            });
-        });
-    }).catch(err => {
-        console.error('Database connection error:', err);
+    try {
+        const db = await connectDB();
+        const rooms = await db.collection("rooms").find(filter).toArray();
+        console.log(`Found ${rooms.length} rooms matching the criteria`);
+        res.json(rooms);
+    } catch (err) {
+        console.error('Error:', err);
         res.status(500).json({
-            error: "Database connection error",
+            error: "Error processing request",
             details: err.message
         });
-    });
+    }
 });
 
 app.listen(5000)
