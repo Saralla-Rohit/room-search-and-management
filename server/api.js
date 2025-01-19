@@ -11,13 +11,16 @@ if (!conString) {
     console.error("MongoDB connection string not found in environment variables!");
     process.exit(1);
 }
+
 let dbClient = null;
 let db = null;
+
 async function connectDB() {
     try {
         if (!dbClient) {
+            console.log("Attempting to connect to MongoDB...");
             dbClient = await mongoClient.connect(conString);
-            db = dbClient.db("roomDb");  // Use consistent database name
+            db = dbClient.db("roomDb");
             console.log("Successfully connected to MongoDB database: roomDb");
         }
         return db;
@@ -26,6 +29,12 @@ async function connectDB() {
         throw err;
     }
 }
+
+// Initialize database connection
+connectDB().catch(err => {
+    console.error("Initial database connection failed:", err);
+    process.exit(1);
+});
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '..', 'public')));
@@ -211,62 +220,64 @@ app.delete("/delete-room/:RoomId", async (req, res) => {
 });
 
 app.get("/get-filtered-rooms", async (req, res) => {
-    const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
-    console.log('Received filter parameters:', req.query);
-
-    let filter = {};
-
-    // Apply price filter if provided
-    if (price && !isNaN(price)) {
-        const priceValue = parseInt(price);
-        filter.Price = { $lt: priceValue };  // Strictly less than the specified price
-    }
-
-    // Handle bedrooms filter
-    if (bedrooms && bedrooms !== '') {
-        if (bedrooms === '4') {
-            filter.Bedrooms = { $gte: 4 };  // 4 or more bedrooms
-        } else {
-            filter.Bedrooms = parseInt(bedrooms);  // Exact number of bedrooms
-        }
-    }
-
-    // Handle bathrooms filter
-    if (bathrooms && bathrooms !== '') {
-        if (bathrooms === '4') {
-            filter.Bathrooms = { $gte: 4 };  // 4 or more bathrooms
-        } else {
-            filter.Bathrooms = parseInt(bathrooms);  // Exact number of bathrooms
-        }
-    }
-
-    // Property type filter (case-insensitive)
-    if (propertyType && propertyType !== '') {
-        filter.PropertyType = new RegExp('^' + propertyType + '$', 'i');
-    }
-
-    // Handle boolean filters
-    if (bachelorsAllowed && bachelorsAllowed !== '') {
-        filter.BachelorsAllowed = bachelorsAllowed === 'true';
-    }
-
-    if (furnished && furnished !== '') {
-        filter.Furnished = furnished === 'true';
-    }
-
-    if (parking && parking !== '') {
-        filter.Parking = parking === 'true';
-    }
-
-    console.log('Applied filters:', filter);
-
     try {
+        const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
+        console.log('Received filter parameters:', req.query);
+
+        let filter = {};
+
+        // Apply price filter if provided
+        if (price && !isNaN(price)) {
+            const priceValue = parseInt(price);
+            filter.Price = { $lte: priceValue };  // Less than or equal to the specified price
+        }
+
+        // Handle bedrooms filter
+        if (bedrooms && bedrooms !== '') {
+            const bedroomValue = parseInt(bedrooms);
+            if (bedroomValue === 4) {
+                filter.Bedrooms = { $gte: 4 };  // 4 or more bedrooms
+            } else if (!isNaN(bedroomValue)) {
+                filter.Bedrooms = bedroomValue;  // Exact number of bedrooms
+            }
+        }
+
+        // Handle bathrooms filter
+        if (bathrooms && bathrooms !== '') {
+            const bathroomValue = parseInt(bathrooms);
+            if (bathroomValue === 4) {
+                filter.Bathrooms = { $gte: 4 };  // 4 or more bathrooms
+            } else if (!isNaN(bathroomValue)) {
+                filter.Bathrooms = bathroomValue;  // Exact number of bathrooms
+            }
+        }
+
+        // Property type filter (case-insensitive)
+        if (propertyType && propertyType !== '') {
+            filter.PropertyType = propertyType;  // Exact match for property type
+        }
+
+        // Handle boolean filters
+        if (bachelorsAllowed === 'true' || bachelorsAllowed === 'false') {
+            filter.BachelorsAllowed = bachelorsAllowed === 'true';
+        }
+
+        if (furnished === 'true' || furnished === 'false') {
+            filter.Furnished = furnished === 'true';
+        }
+
+        if (parking === 'true' || parking === 'false') {
+            filter.Parking = parking === 'true';
+        }
+
+        console.log('Applied MongoDB filters:', JSON.stringify(filter, null, 2));
+
         const db = await connectDB();
         const rooms = await db.collection("rooms").find(filter).toArray();
         console.log(`Found ${rooms.length} rooms matching the criteria`);
         res.json(rooms);
     } catch (err) {
-        console.error('Error:', err);
+        console.error('Error in get-filtered-rooms:', err);
         res.status(500).json({
             error: "Error processing request",
             details: err.message
@@ -274,5 +285,9 @@ app.get("/get-filtered-rooms", async (req, res) => {
     }
 });
 
-app.listen(5000)
-console.log("Server is running at http://127.0.0.1:5000")
+// Start the server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+    console.log(`CORS enabled for origins: ${JSON.stringify(app.get('cors').origin)}`);
+});
