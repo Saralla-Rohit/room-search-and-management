@@ -6,12 +6,7 @@ var path = require('path');
 require('dotenv').config();
 
 // Enable CORS for all routes
-app.use(cors({
-    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com"],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
-}));
+app.use(cors());  // Allow all origins temporarily for debugging
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
@@ -222,6 +217,7 @@ app.delete("/delete-room/:RoomId", async (req, res) => {
 });
 
 app.get("/get-filtered-rooms", async (req, res) => {
+    console.log('GET /get-filtered-rooms - Request received');
     try {
         const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
         console.log('Received filter parameters:', req.query);
@@ -232,51 +228,59 @@ app.get("/get-filtered-rooms", async (req, res) => {
         if (price && !isNaN(price)) {
             const priceValue = parseInt(price);
             filter.Price = { $lte: priceValue };  // Less than or equal to the specified price
+            console.log('Added price filter:', priceValue);
         }
 
         // Handle bedrooms filter
         if (bedrooms && bedrooms !== '') {
-            const bedroomValue = parseInt(bedrooms);
-            if (bedroomValue === 4) {
+            if (bedrooms === '4') {
                 filter.Bedrooms = { $gte: 4 };  // 4 or more bedrooms
-            } else if (!isNaN(bedroomValue)) {
-                filter.Bedrooms = bedroomValue;  // Exact number of bedrooms
+            } else {
+                filter.Bedrooms = parseInt(bedrooms);  // Exact number of bedrooms
             }
+            console.log('Added bedrooms filter:', filter.Bedrooms);
         }
 
         // Handle bathrooms filter
         if (bathrooms && bathrooms !== '') {
-            const bathroomValue = parseInt(bathrooms);
-            if (bathroomValue === 4) {
+            if (bathrooms === '4') {
                 filter.Bathrooms = { $gte: 4 };  // 4 or more bathrooms
-            } else if (!isNaN(bathroomValue)) {
-                filter.Bathrooms = bathroomValue;  // Exact number of bathrooms
+            } else {
+                filter.Bathrooms = parseInt(bathrooms);  // Exact number of bathrooms
             }
+            console.log('Added bathrooms filter:', filter.Bathrooms);
         }
 
-        // Property type filter (case-insensitive)
+        // Property type filter
         if (propertyType && propertyType !== '') {
             filter.PropertyType = propertyType;  // Exact match for property type
+            console.log('Added property type filter:', propertyType);
         }
 
         // Handle boolean filters
         if (bachelorsAllowed === 'true' || bachelorsAllowed === 'false') {
             filter.BachelorsAllowed = bachelorsAllowed === 'true';
+            console.log('Added bachelors allowed filter:', filter.BachelorsAllowed);
         }
 
         if (furnished === 'true' || furnished === 'false') {
             filter.Furnished = furnished === 'true';
+            console.log('Added furnished filter:', filter.Furnished);
         }
 
         if (parking === 'true' || parking === 'false') {
             filter.Parking = parking === 'true';
+            console.log('Added parking filter:', filter.Parking);
         }
 
-        console.log('Applied MongoDB filters:', JSON.stringify(filter, null, 2));
+        console.log('Final MongoDB filter:', JSON.stringify(filter, null, 2));
 
         const db = await connectDB();
+        console.log('Connected to database');
+        
         const rooms = await db.collection("rooms").find(filter).toArray();
         console.log(`Found ${rooms.length} rooms matching the criteria`);
+        
         res.json(rooms);
     } catch (err) {
         console.error('Error in get-filtered-rooms:', err);
