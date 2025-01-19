@@ -8,6 +8,82 @@ $(function () {
             url: url,
             success: (resp) => {
                 $("section").html(resp);
+            },
+            error: (err) => {
+                console.error('Error loading view:', err);
+            }
+        });
+    }
+
+    function GetRooms(UserId) {
+        if (!UserId) {
+            console.error('No user ID provided');
+            return;
+        }
+        $.ajax({
+            method: "get",
+            url: `${API_BASE_URL}/get-rooms/${UserId}`,
+            success: (rooms) => {
+                if (!Array.isArray(rooms)) {
+                    console.error('Expected array of rooms, got:', rooms);
+                    return;
+                }
+                $("#lblUserId").html($.cookie("username")); // Display the logged-in user's name
+                $("#roomsContainer").empty(); // Clear the rooms container before appending new data
+
+                rooms.forEach(room => {
+                    const roomImage = room.image ? `${API_BASE_URL}/${room.image}` : 'https://via.placeholder.com/150';  // Fallback image if no image is available
+                    const card = `
+    <div class="col-12 col-md-4 col-lg-4 mb-4"> 
+        <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            
+            <!-- Card Header -->
+            <div class="card-header p-0" style="height: 200px; border-bottom: 1px solid #ddd;">
+                <img src="${roomImage}" class="card-img-top room-card-img showCard" alt="Room Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" data-room-id="${room.RoomId}">
+            </div>
+            
+            <!-- Card Body -->
+            <div class="card-body" style="height: 120px; overflow: hidden; padding: 10px;">
+                <h6 class="card-title" style="font-size: 14px; font-weight: 500; margin-bottom: 10px; margin-left: 5px">${room.Description}</h6>
+                
+                <!-- Row for Price, Property Type, Bedrooms, and Bathrooms -->
+                <div class="row">
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px;">Price</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">₹${room.Price}</p> 
+                    </div>
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p> 
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p> 
+                    </div>
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p> 
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card Footer -->
+            <div class="card-footer d-flex justify-content-between" style="border-top: 1px solid #ddd; padding: 5px 10px; height: 50px;">
+                <button value="${room.RoomId}" class="btn btn-warning w-50 bi bi-pen-fill" id="btnEdit" style="margin-right: 5px; padding: 5px 10px;">Edit</button>
+                <button value="${room.RoomId}" class="btn btn-danger w-50 bi bi-trash-fill" id="btnDelete" style="padding: 5px 10px;">Delete</button>
+            </div>
+    
+        </div>
+    </div>`;
+
+                    $("#roomsContainer").append(card);
+                });
+            },
+            error: (err) => {
+                console.error('Error fetching rooms:', err);
             }
         });
     }
@@ -75,68 +151,6 @@ $(function () {
             }
         });
     });
-
-    function GetRooms(UserId) {
-        $.ajax({
-            method: "get",
-            url: `${API_BASE_URL}/get-rooms/${UserId}`,
-            success: (rooms) => {
-                $("#lblUserId").html($.cookie("username")); // Display the logged-in user's name
-                $("#roomsContainer").empty(); // Clear the rooms container before appending new data
-
-                rooms.map(room => {
-                    const roomImage = room.image ? `${API_BASE_URL}/${room.image}` : 'https://via.placeholder.com/150';  // Fallback image if no image is available
-                    const card = `
-    <div class="col-12 col-md-4 col-lg-4 mb-4"> 
-        <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-            
-            <!-- Card Header -->
-            <div class="card-header p-0" style="height: 200px; border-bottom: 1px solid #ddd;">
-                <img src="${roomImage}" class="card-img-top room-card-img showCard" alt="Room Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" data-room-id="${room.RoomId}">
-            </div>
-            
-            <!-- Card Body -->
-            <div class="card-body" style="height: 120px; overflow: hidden; padding: 10px;">
-                <h6 class="card-title" style="font-size: 14px; font-weight: 500; margin-bottom: 10px; margin-left: 5px">${room.Description}</h6>
-                
-                <!-- Row for Price, Property Type, Bedrooms, and Bathrooms -->
-                <div class="row">
-                    <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;">Price</p> 
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">₹${room.Price}</p> 
-                    </div>
-                    <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p> 
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p> 
-                    </div>
-                </div>
-                
-                <div class="row">
-                    <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p> 
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p> 
-                    </div>
-                    <div class="col-6" style="font-size: 12px; text-align: center;">
-                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p> 
-                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p> 
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card Footer -->
-            <div class="card-footer d-flex justify-content-between" style="border-top: 1px solid #ddd; padding: 5px 10px; height: 50px;">
-                <button value="${room.RoomId}" class="btn btn-warning w-50 bi bi-pen-fill" id="btnEdit" style="margin-right: 5px; padding: 5px 10px;">Edit</button>
-                <button value="${room.RoomId}" class="btn btn-danger w-50 bi bi-trash-fill" id="btnDelete" style="padding: 5px 10px;">Delete</button>
-            </div>
-    
-        </div>
-    </div>`;
-
-                    $("#roomsContainer").append(card);
-                });
-            }
-        });
-    }
 
     $(document).on("click", "#btnLogin", () => {
         var UserId = $("#txtLUserId").val();

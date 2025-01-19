@@ -5,8 +5,12 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
-// Simple CORS configuration
-app.use(cors());
+// CORS configuration
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
@@ -55,28 +59,7 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 
-// Serve static files with proper MIME types for src directory
-app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
-    setHeaders: (res, filepath) => {
-        if (filepath.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-        } else if (filepath.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        }
-    }
-}));
-
-// Serve public directory as root
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
-// Serve other static directories
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-
-// Serve index.html for root route and any other routes (for SPA)
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
-
+// API Routes (must come before static file serving)
 // Filter rooms endpoint
 app.get("/get-filtered-rooms", async (req, res) => {
     try {
@@ -108,7 +91,7 @@ app.get("/get-filtered-rooms", async (req, res) => {
 app.get("/get-rooms/:UserId", async (req, res) => {
     try {
         const db = await connectDB();
-        const rooms = await db.collection("rooms").find({ UserId: parseInt(req.params.UserId) }).toArray();
+        const rooms = await db.collection("rooms").find({ UserId: req.params.UserId }).toArray();
         res.json(rooms);
     } catch (err) {
         console.error('Error:', err);
@@ -146,7 +129,7 @@ app.post("/add-room", upload.single('image'), async (req, res) => {
 app.get("/get-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
-        const room = await db.collection("rooms").findOne({ RoomId: parseInt(req.params.RoomId) });
+        const room = await db.collection("rooms").findOne({ RoomId: req.params.RoomId });
         res.json(room);  // Sending the appointment data as JSON response
     } catch (err) {
         console.error('Error:', err);
@@ -173,7 +156,7 @@ app.put("/edit-room/:RoomId", upload.single('image'), async (req, res) => {
 
         const db = await connectDB();
         await db.collection("rooms").updateOne(
-            { RoomId: parseInt(req.params.RoomId) },
+            { RoomId: req.params.RoomId },
             { $set: room }
         );
         console.log('Room Updated..');
@@ -188,7 +171,7 @@ app.put("/edit-room/:RoomId", upload.single('image'), async (req, res) => {
 app.delete("/delete-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
-        await db.collection("rooms").deleteOne({ RoomId: parseInt(req.params.RoomId) });
+        await db.collection("rooms").deleteOne({ RoomId: req.params.RoomId });
         console.log('Room deleted..');
         res.send(`Room id : ${req.params.RoomId} deleted`);
     } catch (err) {
@@ -228,6 +211,28 @@ app.post("/register-user", async (req, res) => {
         console.error('Error:', err);
         res.status(500).json({ error: err.message });
     }
+});
+
+// Static file serving (must come after API routes)
+app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
+    setHeaders: (res, filepath) => {
+        if (filepath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (filepath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+
+// Serve public directory as root
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Serve other static directories
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
+// Catch-all route for SPA (must be last)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 // Start the server
