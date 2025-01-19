@@ -7,9 +7,10 @@ require('dotenv').config();
 
 // CORS configuration
 app.use(cors({
-    origin: '*',
+    origin: ['https://room-search-and-management.onrender.com', 'http://localhost:3000'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    credentials: true
 }));
 
 // Parse JSON and URL-encoded bodies
@@ -91,7 +92,11 @@ app.get("/get-filtered-rooms", async (req, res) => {
 app.get("/get-rooms/:UserId", async (req, res) => {
     try {
         const db = await connectDB();
-        const rooms = await db.collection("rooms").find({ UserId: req.params.UserId }).toArray();
+        const UserId = parseInt(req.params.UserId);
+        if (isNaN(UserId)) {
+            return res.status(400).json({ error: "Invalid UserId format" });
+        }
+        const rooms = await db.collection("rooms").find({ UserId }).toArray();
         res.json(rooms);
     } catch (err) {
         console.error('Error:', err);
