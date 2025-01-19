@@ -91,18 +91,29 @@ app.post("/add-room", upload.single('image'), (req, res) => {
         Bathrooms: parseInt(req.body.Bathrooms),
         Parking: req.body.Parking === 'true',
         BachelorsAllowed: req.body.BachelorsAllowed === 'true',
-        PropertyType: req.body['Property Type'],
-        Contact: req.body['Contact Info'],
+        PropertyType: req.body.PropertyType,
+        Contact: req.body.Contact,
         UserId: parseInt(req.body.UserId),
         image: req.file ? req.file.path : null,
     };
+    
+    // Log the received data for debugging
+    console.log('Received room data:', req.body);
+    console.log('Processed room object:', room);
+
     mongoClient.connect(conString).then(clientObj => {
         clientObj.db("roomDb").collection("rooms").insertOne(room).then(() => {
-            console.log('Room Added..');
-            res.json(room);  // Sending the added appointment as JSON response
+            console.log('Room Added Successfully');
+            res.json({ success: true, room });
+        }).catch(err => {
+            console.error('Error adding room:', err);
+            res.status(500).json({ success: false, error: err.message });
         });
+    }).catch(err => {
+        console.error('Database connection error:', err);
+        res.status(500).json({ success: false, error: err.message });
     });
-})
+});
 
 app.get("/get-rooms/:UserId", (req, res) => {
     mongoClient.connect(conString).then(clientObj => {
@@ -131,8 +142,8 @@ app.put("/edit-room/:RoomId", upload.single('image'), (req, res) => {
         Furnished: req.body.Furnished === 'true',
         Parking: req.body.Parking === 'true',
         BachelorsAllowed: req.body.BachelorsAllowed === 'true',
-        PropertyType: req.body['Property Type'],
-        Contact: req.body['Contact Info'],
+        PropertyType: req.body.PropertyType || null,
+        Contact: req.body.Contact || null,
         UserId: parseInt(req.body.UserId),
         image: req.file ? req.file.path : null,
     };
@@ -160,51 +171,53 @@ app.delete("/delete-room/:RoomId", (req, res) => {
 
 app.get("/get-filtered-rooms", (req, res) => {
     const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
+    console.log('Received filter parameters:', req.query);
 
     let filter = {};
 
     // Apply price filter if provided
-    if (price) {
-        filter.Price = { $lte: parseInt(price) };
+    if (price && !isNaN(price)) {
+        const priceValue = parseInt(price);
+        filter.Price = { $lt: priceValue };  // Strictly less than the specified price
     }
 
     // Handle bedrooms filter
-    if (bedrooms) {
+    if (bedrooms && bedrooms !== '') {
         if (bedrooms === '4') {
-            filter.Bedrooms = { $gte: 4 };  // For 4+ Bedrooms (greater than or equal to 4)
+            filter.Bedrooms = { $gte: 4 };  // 4 or more bedrooms
         } else {
-            filter.Bedrooms = { $lte: parseInt(bedrooms) };  // For specific number of Bedrooms (less than or equal to selected value)
+            filter.Bedrooms = parseInt(bedrooms);  // Exact number of bedrooms
         }
     }
 
     // Handle bathrooms filter
-    if (bathrooms) {
+    if (bathrooms && bathrooms !== '') {
         if (bathrooms === '4') {
-            filter.Bathrooms = { $gte: 4 };  // For 4+ Bathrooms (greater than or equal to 4)
+            filter.Bathrooms = { $gte: 4 };  // 4 or more bathrooms
         } else {
-            filter.Bathrooms = { $lte: parseInt(bathrooms) };  // For specific number of Bathrooms (less than or equal to selected value)
+            filter.Bathrooms = parseInt(bathrooms);  // Exact number of bathrooms
         }
     }
 
-    // Property type filter
-    if (propertyType) {
-        filter.PropertyType = propertyType;
+    // Property type filter (case-insensitive)
+    if (propertyType && propertyType !== '') {
+        filter.PropertyType = new RegExp('^' + propertyType + '$', 'i');
     }
 
-    // Handle bachelorsAllowed filter (true/false)
-    if (bachelorsAllowed !== undefined) {
+    // Handle boolean filters
+    if (bachelorsAllowed && bachelorsAllowed !== '') {
         filter.BachelorsAllowed = bachelorsAllowed === 'true';
     }
 
-    // Handle furnished filter (true/false)
-    if (furnished !== undefined) {
+    if (furnished && furnished !== '') {
         filter.Furnished = furnished === 'true';
     }
 
-    // Handle parking filter (true/false)
-    if (parking !== undefined) {
+    if (parking && parking !== '') {
         filter.Parking = parking === 'true';
     }
+
+    console.log('Applied filters:', filter);
 
     // Connect to MongoDB and fetch the filtered rooms
     mongoClient.connect(conString).then(clientObj => {
@@ -212,13 +225,21 @@ app.get("/get-filtered-rooms", (req, res) => {
 
         // Fetch the rooms based on the constructed filter
         db.collection("rooms").find(filter).toArray().then(rooms => {
+            console.log(`Found ${rooms.length} rooms matching the criteria`);
             res.json(rooms);
-            console.log('Filtered rooms:', rooms);
         }).catch(err => {
-            res.status(500).send("Error fetching rooms: " + err.message);
+            console.error('Error fetching rooms:', err);
+            res.status(500).json({
+                error: "Error fetching rooms",
+                details: err.message
+            });
         });
     }).catch(err => {
-        res.status(500).send("Database connection error: " + err.message);
+        console.error('Database connection error:', err);
+        res.status(500).json({
+            error: "Database connection error",
+            details: err.message
+        });
     });
 });
 

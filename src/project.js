@@ -202,13 +202,17 @@ $(function () {
         formData.append('Price', $('#txtPrice').val());
         formData.append('Bedrooms', $('#txtBedrooms').val());
         formData.append('Bathrooms', $('#txtBathrooms').val());
-        formData.append('Furnished', $('#chkFurnished').prop('checked') ? "Yes" : "No");
-        formData.append('Parking', $('#chkParking').prop('checked') ? "Yes" : "No");
-        formData.append('BachelorsAllowed', $('#chkBachelorsAllowed').prop('checked') ? "Yes" : "No");
-        formData.append('PropertyType', $('#selPropertyType').val());
-        formData.append('Contact', $('#txtContact').val());
+        formData.append('Furnished', $('#chkFurnished').prop('checked').toString());
+        formData.append('Parking', $('#chkParking').prop('checked').toString());
+        formData.append('BachelorsAllowed', $('#chkBachelorsAllowed').prop('checked').toString());
+        formData.append('PropertyType', $('#selPropertyType').val() || null);
+        formData.append('Contact', $('#txtContact').val() || null);
         formData.append('UserId', $.cookie('UserId'));
 
+        // Log the form data for debugging
+        for (let pair of formData.entries()) {
+            console.log(pair[0] + ': ' + pair[1]);
+        }
 
         // Send AJAX request
         $.ajax({
@@ -217,12 +221,15 @@ $(function () {
             data: formData,
             processData: false,
             contentType: false,
-            success: function () {
+            success: function (response) {
+                console.log('Room added successfully:', response);
                 alert('Room Added Successfully');
-                window.location.href = '/public/user-dashboard.html';
+                loadView("/public/user-dashboard.html");
+                GetRooms($.cookie('UserId'));
             },
             error: function (xhr, status, error) {
                 console.error('Error adding room:', error);
+                console.error('Server response:', xhr.responseText);
                 alert('Error adding room. Please try again.');
             }
         });
