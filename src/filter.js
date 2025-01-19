@@ -1,7 +1,7 @@
 // Define API URL based on environment
 const API_URL = window.location.hostname === 'room-search-and-management.onrender.com' 
     ? 'https://roomify-backend-8uxc.onrender.com'  // Production backend URL
-    : 'http://127.0.0.1:5000';               // Local development backend URL
+    : 'http://127.0.0.1:10000';               // Local development backend URL
 
 $(function () {
     // When the price range slider is changed

@@ -7,7 +7,7 @@ require('dotenv').config();
 
 // Configure CORS with specific options
 app.use(cors({
-    origin: ['http://127.0.0.1:5500', 'https://room-search-and-management.onrender.com'],
+    origin: ['http://127.0.0.1:5500', 'http://127.0.0.1:10000', 'https://room-search-and-management.onrender.com', 'https://roomify-backend-8uxc.onrender.com'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true
 }));
@@ -59,6 +59,9 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 
+// Serve static files
+app.use(express.static(path.join(__dirname, '..')));
+
 // Serve static files with proper MIME types
 app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
     setHeaders: (res, filepath) => {
@@ -73,10 +76,9 @@ app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
 // Serve other static files
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
 
-// Serve index.html for root route
-app.get('/', (req, res) => {
+// Serve index.html for root route and any other routes (for SPA)
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '..', 'index.html'));
 });
 
