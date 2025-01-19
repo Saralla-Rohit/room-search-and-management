@@ -27,61 +27,38 @@ $(function () {
 
         // Construct the query parameters
         let queryParams = new URLSearchParams();
+        
+        if (price) queryParams.append('price', price);
+        if (bedrooms && bedrooms !== 'any') queryParams.append('bedrooms', bedrooms);
+        if (bathrooms && bathrooms !== 'any') queryParams.append('bathrooms', bathrooms);
+        if (propertyType && propertyType !== 'any') queryParams.append('propertyType', propertyType);
+        if (bachelorsAllowed && bachelorsAllowed !== 'any') queryParams.append('bachelorsAllowed', bachelorsAllowed);
+        if (furnished && furnished !== 'any') queryParams.append('furnished', furnished);
+        if (parking && parking !== 'any') queryParams.append('parking', parking);
 
-        // Add filters only if they have valid values
-        if (price && !isNaN(price) && price > 0) {
-            queryParams.append('price', price);
-        }
-
-        if (bedrooms && bedrooms !== 'any') {
-            queryParams.append('bedrooms', bedrooms);
-        }
-
-        if (bathrooms && bathrooms !== 'any') {
-            queryParams.append('bathrooms', bathrooms);
-        }
-
-        if (propertyType && propertyType !== 'any') {
-            queryParams.append('propertyType', propertyType);
-        }
-
-        if (bachelorsAllowed && bachelorsAllowed !== 'any') {
-            queryParams.append('bachelorsAllowed', bachelorsAllowed);
-        }
-
-        if (furnished && furnished !== 'any') {
-            queryParams.append('furnished', furnished);
-        }
-
-        if (parking && parking !== 'any') {
-            queryParams.append('parking', parking);
-        }
-
-        // Send AJAX request with the constructed query parameters
+        // Send AJAX request
         $.ajax({
             url: `${API_URL}/get-filtered-rooms?${queryParams.toString()}`,
             type: "GET",
-            crossDomain: true,
-            contentType: "application/json",
+            dataType: 'json',
             success: function (rooms) {
-                // Clear the existing rooms in the container
+                // Clear the existing rooms
                 $("#roomsContainer").empty();
 
-                // Check if there are any rooms returned
                 if (rooms.length === 0) {
-                    // If no rooms found, show a message
                     $("#roomsContainer").append(`
                         <div class="alert alert-info text-center" role="alert">
                             <i class="bi bi-info-circle me-2"></i>
                             No rooms found matching your criteria. Try adjusting your filters.
                         </div>
                     `);
-                } else {
-                    // Loop through the rooms and render them
-                    rooms.forEach(function (room) {
-                        const roomImage = room.image ? `${API_URL}/${room.image}` : 'https://via.placeholder.com/150';
-                        
-                        const card = `
+                    return;
+                }
+
+                // Loop through the rooms and render them
+                rooms.forEach(function (room) {
+                    const roomImage = room.image ? `${API_URL}/${room.image}` : 'https://via.placeholder.com/150';
+                    const card = `
     <div class="col-12 col-md-4 col-lg-4 mb-4"> 
         <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
             <!-- Card Header -->
@@ -119,11 +96,15 @@ $(function () {
                     </div>
                 </div>
             </div>
+            
+            <div class="card-footer d-flex justify-content-between" style="border-top: 1px solid #ddd; padding: 5px 10px; height: 50px;">
+                <button value="${room.RoomId}" class="btn btn-warning w-50 bi bi-pen-fill" id="btnEdit" style="margin-right: 5px; padding: 5px 10px;">Edit</button>
+                <button value="${room.RoomId}" class="btn btn-danger w-50 bi bi-trash-fill" id="btnDelete" style="padding: 5px 10px;">Delete</button>
+            </div>
         </div>
     </div>`;
-                        $("#roomsContainer").append(card);
-                    });
-                }
+                    $("#roomsContainer").append(card);
+                });
             },
             error: function(xhr, status, error) {
                 console.error('Error fetching filtered rooms:', {

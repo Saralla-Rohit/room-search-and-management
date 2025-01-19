@@ -5,30 +5,18 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
-// Configure CORS
-app.use(cors());
+// Configure CORS with specific options
+app.use(cors({
+    origin: ['http://127.0.0.1:5500', 'https://room-search-and-management.onrender.com'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true
+}));
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static files with proper MIME types
-app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        } else if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-        }
-    }
-}));
-
-// Serve other static files
-app.use(express.static(path.join(__dirname, '..')));
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
-app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
-app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
-
+// Database connection
 var mongoClient = require("mongodb").MongoClient;
 const conString = process.env.MONGO_URL;
 if (!conString) {
@@ -60,6 +48,39 @@ connectDB().catch(err => {
     process.exit(1);
 });
 
+// Configure multer for file uploads
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+var upload = multer({ storage: storage });
+
+// Serve static files with proper MIME types
+app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
+    setHeaders: (res, filepath) => {
+        if (filepath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        } else if (filepath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        }
+    }
+}));
+
+// Serve other static files
+app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
+
+// Serve index.html for root route
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'index.html'));
+});
+
+// Filter rooms endpoint
 app.get("/get-filtered-rooms", async (req, res) => {
     try {
         const db = await connectDB();
@@ -86,90 +107,7 @@ app.get("/get-filtered-rooms", async (req, res) => {
     }
 });
 
-app.get("/", (req, res) => {
-    res.send("Home")
-})
-
-app.get("/users", async (req, res) => {
-    try {
-        const db = await connectDB();
-        const users = await db.collection("users").find({}).toArray();
-        res.json(users);
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
-    }
-})
-
-app.post("/register-user", async (req, res) => {
-    var user = {
-        UserId: parseInt(req.body.UserId),
-        UserName: req.body.UserName,
-        Email: req.body.Email,
-        Password: req.body.Password,
-        Mobile: req.body.Mobile
-    }
-    try {
-        const db = await connectDB();
-        await db.collection("users").insertOne(user);
-        console.log("User Registered")
-        res.json(user)
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
-    }
-})
-
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Store images in 'uploads' directory
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)); // Use timestamp to avoid filename conflicts
-    }
-});
-var upload = multer({ storage: storage });
-
-app.post("/add-room", upload.single('image'), async (req, res) => {
-    var room = {
-        RoomId: parseInt(req.body.RoomId),
-        Description: req.body.Description,
-        Price: parseInt(req.body.Price),
-        Bedrooms: parseInt(req.body.Bedrooms),
-        Furnished: req.body.Furnished === 'true',
-        Bathrooms: parseInt(req.body.Bathrooms),
-        Parking: req.body.Parking === 'true',
-        BachelorsAllowed: req.body.BachelorsAllowed === 'true',
-        PropertyType: req.body.PropertyType,
-        Contact: req.body.Contact,
-        UserId: parseInt(req.body.UserId),
-        image: req.file ? req.file.path : null,
-    };
-
-    // Log the received data for debugging
-    console.log('Received room data:', req.body);
-    console.log('Processed room object:', room);
-
-    try {
-        const db = await connectDB();
-        await db.collection("rooms").insertOne(room);
-        console.log('Room Added Successfully');
-        res.json({ success: true, room });
-    } catch (err) {
-        console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
-    }
-});
-
+// Get rooms by user ID
 app.get("/get-rooms/:UserId", async (req, res) => {
     try {
         const db = await connectDB();
@@ -177,13 +115,37 @@ app.get("/get-rooms/:UserId", async (req, res) => {
         res.json(rooms);
     } catch (err) {
         console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
+        res.status(500).json({ error: err.message });
     }
-})
+});
 
+// Add room endpoint
+app.post("/add-room", upload.single('image'), async (req, res) => {
+    try {
+        var room = {
+            RoomId: parseInt(req.body.RoomId),
+            Price: parseInt(req.body.Price),
+            Bedrooms: parseInt(req.body.Bedrooms),
+            Bathrooms: parseInt(req.body.Bathrooms),
+            PropertyType: req.body.PropertyType,
+            Description: req.body.Description,
+            BachelorsAllowed: req.body.BachelorsAllowed === 'true',
+            Furnished: req.body.Furnished === 'true',
+            Parking: req.body.Parking === 'true',
+            UserId: parseInt(req.body.UserId),
+            image: req.file ? req.file.path : null
+        };
+
+        const db = await connectDB();
+        await db.collection("rooms").insertOne(room);
+        res.json({ message: "Room added successfully" });
+    } catch (err) {
+        console.error('Error adding room:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get room by ID
 app.get("/get-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
@@ -191,28 +153,27 @@ app.get("/get-room/:RoomId", async (req, res) => {
         res.json(room);  // Sending the appointment data as JSON response
     } catch (err) {
         console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
+        res.status(500).json({ error: err.message });
     }
 });
 
+// Edit room endpoint
 app.put("/edit-room/:RoomId", upload.single('image'), async (req, res) => {
-    var room = {
-        Description: req.body.Description,
-        Price: parseInt(req.body.Price),
-        Bedrooms: parseInt(req.body.Bedrooms),
-        Bathrooms: parseInt(req.body.Bathrooms),
-        Furnished: req.body.Furnished === 'true',
-        Parking: req.body.Parking === 'true',
-        BachelorsAllowed: req.body.BachelorsAllowed === 'true',
-        PropertyType: req.body.PropertyType || null,
-        Contact: req.body.Contact || null,
-        UserId: parseInt(req.body.UserId),
-        image: req.file ? req.file.path : null,
-    };
     try {
+        var room = {
+            Description: req.body.Description,
+            Price: parseInt(req.body.Price),
+            Bedrooms: parseInt(req.body.Bedrooms),
+            Bathrooms: parseInt(req.body.Bathrooms),
+            Furnished: req.body.Furnished === 'true',
+            Parking: req.body.Parking === 'true',
+            BachelorsAllowed: req.body.BachelorsAllowed === 'true',
+            PropertyType: req.body.PropertyType || null,
+            Contact: req.body.Contact || null,
+            UserId: parseInt(req.body.UserId),
+            image: req.file ? req.file.path : null,
+        };
+
         const db = await connectDB();
         await db.collection("rooms").updateOne(
             { RoomId: parseInt(req.params.RoomId) },
@@ -222,13 +183,11 @@ app.put("/edit-room/:RoomId", upload.single('image'), async (req, res) => {
         res.json({ message: 'Room Updated Successfully' });
     } catch (err) {
         console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
+        res.status(500).json({ error: err.message });
     }
 });
 
+// Delete room endpoint
 app.delete("/delete-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
@@ -237,10 +196,40 @@ app.delete("/delete-room/:RoomId", async (req, res) => {
         res.send(`Room id : ${req.params.RoomId} deleted`);
     } catch (err) {
         console.error('Error:', err);
-        res.status(500).json({
-            error: "Error processing request",
-            details: err.message
-        });
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get users endpoint
+app.get("/users", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const users = await db.collection("users").find({}).toArray();
+        res.json(users);
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Register user endpoint
+app.post("/register-user", async (req, res) => {
+    try {
+        var user = {
+            UserId: parseInt(req.body.UserId),
+            UserName: req.body.UserName,
+            Email: req.body.Email,
+            Password: req.body.Password,
+            Mobile: req.body.Mobile
+        };
+
+        const db = await connectDB();
+        await db.collection("users").insertOne(user);
+        console.log("User Registered")
+        res.json(user)
+    } catch (err) {
+        console.error('Error:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
