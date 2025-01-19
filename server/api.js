@@ -29,12 +29,21 @@ async function connectDB() {
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')));
 app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
-app.use('/src', express.static(path.join(__dirname, '..', 'src', 'project.js')));
-app.use('/src', express.static(path.join(__dirname, '..', 'src', 'filter.js')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
+// Serve static files with proper MIME types
+app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
