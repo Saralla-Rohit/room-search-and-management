@@ -12,10 +12,22 @@ app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '..', 'public')));
+// Serve static files with proper MIME types
+app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
+    setHeaders: (res, path) => {
+        if (path.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css');
+        } else if (path.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript');
+        }
+    }
+}));
+
+// Serve other static files
+app.use(express.static(path.join(__dirname, '..')));
 app.use('/public', express.static(path.join(__dirname, '..', 'public')));
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
 
 var mongoClient = require("mongodb").MongoClient;
 const conString = process.env.MONGO_URL;
