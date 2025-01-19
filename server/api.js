@@ -59,10 +59,11 @@ var storage = multer.diskStorage({
 var upload = multer({ storage: storage });
 
 app.use(cors({
-    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com", "https://roomify-backend.onrender.com"],
+    origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com"],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
 app.get("/", (req, res) => {
     res.send("Home")
