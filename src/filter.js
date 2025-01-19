@@ -73,53 +73,50 @@ $(function () {
                         const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';
 
                         const card = `
-                        <div class="col-12 col-md-6 col-lg-6 mb-4">
-                            <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
-                                
-                                <!-- Card Header -->
-                                <div class="card-header p-0" style="height: 200px; border-bottom: 1px solid #ddd;" id="showCard">
-                                    <img src="${roomImage}" class="card-img-top room-card-img" alt="Room Image" style="width: 100%; height: 100%; object-fit: cover;" data-room-id="${room.RoomId}">
-                                </div>
-                                
-                                <!-- Card Body -->
-                                <div class="card-body" style="height: 120px; overflow: hidden; padding: 10px;">
-                                    <h6 class="card-title" style="font-size: 14px; font-weight: 500; margin-bottom: 10px; margin-left: 5px">${room.Description}</h6>
-                                    
-                                    <!-- Row for Price, Property Type, Bedrooms, and Bathrooms -->
-                                    <div class="row">
-                                        <!-- Price -->
-                                        <div class="col-6" style="font-size: 12px; text-align: center;">
-                                            <p class="card-text" style="margin-bottom: 0px;">Price</p>
-                                            <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">₹${room.Price}</p>
-                                        </div>
-                                        <!-- Property Type -->
-                                        <div class="col-6" style="font-size: 12px; text-align: center;">
-                                            <p class="card-text" style="margin-bottom: 0px;">Property Type</p>
-                                            <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType || 'Not specified'}</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="row">
-                                        <!-- Bedrooms -->
-                                        <div class="col-6" style="font-size: 12px; text-align: center;">
-                                            <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p>
-                                            <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p>
-                                        </div>
-                                        <!-- Bathrooms -->
-                                        <div class="col-6" style="font-size: 12px; text-align: center;">
-                                            <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p>
-                                            <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- Card Footer -->
-                                <div class="card-footer d-flex justify-content-between" style="border-top: 1px solid #ddd; padding: 5px 10px; height: 50px;">
-                                    <button value="${room.RoomId}" class="btn btn-warning w-50 bi bi-pen-fill" id="btnEdit" style="margin-right: 5px; padding: 5px 10px;">Edit</button>
-                                    <button value="${room.RoomId}" class="btn btn-danger w-50 bi bi-trash-fill" id="btnDelete" style="padding: 5px 10px;">Delete</button>
-                                </div>
-                            </div>
-                        </div>`;
+    <div class="col-12 col-md-4 col-lg-4 mb-4"> 
+        <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            
+            <!-- Card Header -->
+            <div class="card-header p-0" style="height: 200px; border-bottom: 1px solid #ddd;">
+                <img src="${roomImage}" class="card-img-top room-card-img showCard" alt="Room Image" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" data-room-id="${room.RoomId}">
+            </div>
+            
+            <!-- Card Body -->
+            <div class="card-body" style="height: 120px; overflow: hidden; padding: 10px;">
+                <h6 class="card-title" style="font-size: 14px; font-weight: 500; margin-bottom: 10px; margin-left: 5px">${room.Description}</h6>
+                
+                <!-- Row for Price, Property Type, Bedrooms, and Bathrooms -->
+                <div class="row">
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px;">Price</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">₹${room.Price}</p> 
+                    </div>
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px;">Property Type</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 7px;">${room.PropertyType}</p> 
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px;margin-top: 5px">Bedrooms</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px; margin-bottom: 0px">${room.Bedrooms}</p> 
+                    </div>
+                    <div class="col-6" style="font-size: 12px; text-align: center;">
+                        <p class="card-text" style="margin-bottom: 0px; margin-top: 5px">Bathrooms</p> 
+                        <p class="card-text" style="font-weight: 500; margin-top: -2px;">${room.Bathrooms}</p> 
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Card Footer -->
+            <div class="card-footer d-flex justify-content-between" style="border-top: 1px solid #ddd; padding: 5px 10px; height: 50px;">
+                <button value="${room.RoomId}" class="btn btn-warning w-50 bi bi-pen-fill" id="btnEdit" style="margin-right: 5px; padding: 5px 10px;">Edit</button>
+                <button value="${room.RoomId}" class="btn btn-danger w-50 bi bi-trash-fill" id="btnDelete" style="padding: 5px 10px;">Delete</button>
+            </div>
+    
+        </div>
+    </div>`;
 
                         // Append the generated card to the rooms container
                         $("#roomsContainer").append(card);
