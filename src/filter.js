@@ -1,8 +1,4 @@
-// Define API URL based on environment
-const API_URL = window.location.hostname === 'room-search-and-management.onrender.com' 
-    ? 'https://roomify-backend-8uxc.onrender.com'  // Production backend URL
-    : 'http://127.0.0.1:10000';               // Local development backend URL
-
+// Using the API_BASE_URL defined in project.js
 $(function () {
     // When the price range slider is changed
     $(document).on("input", "#priceRange", function (e) {
@@ -38,7 +34,7 @@ $(function () {
 
         // Send AJAX request
         $.ajax({
-            url: `${API_URL}/get-filtered-rooms?${queryParams.toString()}`,
+            url: `${API_BASE_URL}/get-filtered-rooms?${queryParams.toString()}`,
             type: "GET",
             dataType: 'json',
             success: function (rooms) {
@@ -57,7 +53,7 @@ $(function () {
 
                 // Loop through the rooms and render them
                 rooms.forEach(function (room) {
-                    const roomImage = room.image ? `${API_URL}/${room.image}` : 'https://via.placeholder.com/150';
+                    const roomImage = room.image ? `${API_BASE_URL}/${room.image}` : 'https://via.placeholder.com/150';
                     const card = `
     <div class="col-12 col-md-4 col-lg-4 mb-4"> 
         <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">

@@ -1,8 +1,8 @@
 $(function () {
-    // Add this at the top of your file
-    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-        ? 'http://127.0.0.1:5000'
-        : 'https://room-search-and-management.onrender.com';
+    // Define API base URL based on environment
+    const API_BASE_URL = window.location.hostname === 'room-search-and-management.onrender.com' 
+        ? 'https://roomify-backend-8uxc.onrender.com'
+        : 'http://127.0.0.1:10000';
 
     function loadView(url) {
         $.ajax({
