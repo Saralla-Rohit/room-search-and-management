@@ -1,13 +1,11 @@
 $(function () {
-    // Define API base URL based on environment
-    const API_BASE_URL = window.location.hostname === 'room-search-and-management.onrender.com' 
-        ? 'https://roomify-backend-8uxc.onrender.com'
-        : 'http://127.0.0.1:10000';
+    // Define API base URL
+    const API_BASE_URL = 'https://roomify-backend-8uxc.onrender.com';
 
     function loadView(url) {
         $.ajax({
             method: "get",
-            url: `/public${url}`,
+            url: url,
             success: (resp) => {
                 $("section").html(resp);
             }
@@ -17,22 +15,22 @@ $(function () {
     // Check if user is logged in
     const UserId = $.cookie("UserId");
     if (UserId) {
-        loadView("/user-dashboard.html");
+        loadView("/public/user-dashboard.html");
         GetRooms(UserId);
     } else {
-        loadView("/home.html");
+        loadView("/public/home.html");
     }
 
     $(document).on("click", "#btnCreateAccount", () => {
-        loadView("/register.html");
+        loadView("/public/register.html");
     });
 
     $(document).on("click", "#btnSignin", () => {
-        loadView("/login.html");
+        loadView("/public/login.html");
     });
 
     $(document).on("click", "#btnCancel", () => {
-        loadView("/home.html");
+        loadView("/public/home.html");
     });
 
     $(document).on("click", "#btnRegister", () => {
@@ -50,7 +48,7 @@ $(function () {
             data: user,
             success: () => {
                 alert("Registered Successfully..");
-                loadView("/user-login.html");
+                loadView("/public/user-login.html");
             }
         });
     });
@@ -153,7 +151,7 @@ $(function () {
                     if (user.Password == password) {
                         $.cookie("UserId", user.UserId);
                         $.cookie("username", user.UserName);
-                        loadView("/user-dashboard.html");
+                        loadView("/public/user-dashboard.html");
                         GetRooms(user.UserId);
                     } else {
                         alert("Invalid password");
@@ -168,15 +166,15 @@ $(function () {
     $(document).on("click", "#btnSignout", () => {
         $.removeCookie("username");
         $.removeCookie("UserId");
-        loadView("/login.html");
+        loadView("/public/login.html");
     });
 
     $(document).on("click", "#btnNewRoom", () => {
-        loadView("/add-room.html");
+        loadView("/public/add-room.html");
     });
 
     $(document).on("click", "#btnCancelRoom", () => {
-        loadView("/user-dashboard.html");
+        loadView("/public/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
@@ -229,7 +227,7 @@ $(function () {
             success: function (response) {
                 console.log('Room added successfully:', response);
                 alert('Room Added Successfully');
-                loadView("/user-dashboard.html");
+                loadView("/public/user-dashboard.html");
                 GetRooms($.cookie('UserId'));
             },
             error: function (xhr, status, error) {
@@ -249,7 +247,7 @@ $(function () {
             return;
         }
 
-        loadView("/edit-room.html");
+        loadView("/public/edit-room.html");
         $.ajax({
             method: "get",
             url: `${API_BASE_URL}/get-room/${roomId}`,
@@ -323,7 +321,7 @@ $(function () {
             contentType: false,
             success: () => {
                 alert("Room Updated Successfully");
-                loadView("/user-dashboard.html");
+                loadView("/public/user-dashboard.html");
                 GetRooms($.cookie("UserId"));
             },
             error: (err) => {
@@ -334,7 +332,7 @@ $(function () {
     });
 
     $(document).on("click", "#btnDelete", (e) => {
-        loadView("/delete-room.html");
+        loadView("/public/delete-room.html");
         const roomId = e.target.value;
 
         $.ajax({
@@ -361,7 +359,7 @@ $(function () {
             url: `${API_BASE_URL}/delete-room/${roomId}`,
             success: () => {
                 alert("Room Deleted Successfully");
-                loadView("/user-dashboard.html");
+                loadView("/public/user-dashboard.html");
                 GetRooms($.cookie("UserId"));
             },
             error: (err) => {
@@ -372,12 +370,12 @@ $(function () {
     });
 
     $(document).on("click", "#btnCancelDeleteRoom", () => {
-        loadView("/user-dashboard.html");
+        loadView("/public/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
     $(document).on("click", "#btnEditCancel", () => {
-        loadView("/user-dashboard.html");
+        loadView("/public/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
     $(document).on("click", ".showCard", (e) => {
@@ -441,7 +439,7 @@ $(function () {
     });
 
     $(document).on("click", "#btnCloseRoomDetails", () => {
-        loadView("/user-dashboard.html");
+        loadView("/public/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 

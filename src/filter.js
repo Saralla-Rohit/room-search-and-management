@@ -1,5 +1,7 @@
-// Using the API_BASE_URL defined in project.js
+// Using the API_BASE_URL from project.js
 $(function () {
+    const API_BASE_URL = 'https://roomify-backend-8uxc.onrender.com';
+
     // When the price range slider is changed
     $(document).on("input", "#priceRange", function (e) {
         const priceValue = e.target.value;

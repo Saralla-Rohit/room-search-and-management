@@ -5,32 +5,8 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
-// Configure CORS with specific options
-const corsOptions = {
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'http://127.0.0.1:5500',
-            'http://127.0.0.1:10000',
-            'https://room-search-and-management.onrender.com',
-            'https://roomify-backend-8uxc.onrender.com'
-        ];
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-        if (allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
-
-// Enable pre-flight requests for all routes
-app.options('*', cors(corsOptions));
+// Simple CORS configuration
+app.use(cors());
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
