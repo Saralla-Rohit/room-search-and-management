@@ -61,6 +61,8 @@ $(function () {
         $.ajax({
             url: `${API_URL}/get-filtered-rooms?${queryParams.toString()}`,
             type: "GET",
+            crossDomain: true,
+            contentType: "application/json",
             success: function (rooms) {
                 // Clear the existing rooms in the container
                 $("#roomsContainer").empty();

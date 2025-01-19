@@ -5,21 +5,17 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
-// Configure CORS properly for all routes
-const corsOptions = {
-    origin: ['http://127.0.0.1:5500', 'https://room-search-and-management.onrender.com'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true,
-    optionsSuccessStatus: 200
-};
-
-// Apply CORS configuration
-app.use(cors(corsOptions));
+// Configure CORS
+app.use(cors());
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+
+// Serve static files
+app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use('/public', express.static(path.join(__dirname, '..', 'public')));
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 var mongoClient = require("mongodb").MongoClient;
 const conString = process.env.MONGO_URL;
@@ -78,37 +74,10 @@ app.get("/get-filtered-rooms", async (req, res) => {
     }
 });
 
-// Serve static files
-app.use(express.static(path.join(__dirname, '..', 'public')));
-app.use('/public', express.static(path.join(__dirname, '..', 'public')));
-app.use('/images', express.static(path.join(__dirname, '..', 'public', 'images')));
-app.use('/node_modules', express.static(path.join(__dirname, '..', 'node_modules')));
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
-// Serve static files with proper MIME types
-app.use('/src', express.static(path.join(__dirname, '..', 'src'), {
-    setHeaders: (res, path) => {
-        if (path.endsWith('.css')) {
-            res.setHeader('Content-Type', 'text/css');
-        } else if (path.endsWith('.js')) {
-            res.setHeader('Content-Type', 'application/javascript');
-        }
-    }
-}));
-
-var storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'uploads/'); // Store images in 'uploads' directory
-    },
-    filename: function (req, file, cb) {
-        cb(null, Date.now() + path.extname(file.originalname)); // Use timestamp to avoid filename conflicts
-    }
-});
-var upload = multer({ storage: storage });
-
 app.get("/", (req, res) => {
     res.send("Home")
 })
+
 app.get("/users", async (req, res) => {
     try {
         const db = await connectDB();
@@ -122,6 +91,7 @@ app.get("/users", async (req, res) => {
         });
     }
 })
+
 app.post("/register-user", async (req, res) => {
     var user = {
         UserId: parseInt(req.body.UserId),
@@ -144,6 +114,16 @@ app.post("/register-user", async (req, res) => {
     }
 })
 
+var storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/'); // Store images in 'uploads' directory
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname)); // Use timestamp to avoid filename conflicts
+    }
+});
+var upload = multer({ storage: storage });
+
 app.post("/add-room", upload.single('image'), async (req, res) => {
     var room = {
         RoomId: parseInt(req.body.RoomId),
@@ -159,7 +139,7 @@ app.post("/add-room", upload.single('image'), async (req, res) => {
         UserId: parseInt(req.body.UserId),
         image: req.file ? req.file.path : null,
     };
-    
+
     // Log the received data for debugging
     console.log('Received room data:', req.body);
     console.log('Processed room object:', room);
@@ -191,6 +171,7 @@ app.get("/get-rooms/:UserId", async (req, res) => {
         });
     }
 })
+
 app.get("/get-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
