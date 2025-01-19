@@ -1,4 +1,9 @@
 $(function () {
+    // Add this at the top of your file
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://127.0.0.1:5000'
+        : 'https://room-search-and-management.onrender.com';
+
     function loadView(url) {
         $.ajax({
             method: "get",
@@ -41,7 +46,7 @@ $(function () {
 
         $.ajax({
             method: "post",
-            url: "http://127.0.0.1:5000/register-user",
+            url: `${API_BASE_URL}/register-user`,
             data: user,
             success: () => {
                 alert("Registered Successfully..");
@@ -54,7 +59,7 @@ $(function () {
         console.log("User Id Typed: ", e.target.value);
         $.ajax({
             method: "get",
-            url: "http://127.0.0.1:5000/users",
+            url: `${API_BASE_URL}/users`,
             success: (users) => {
                 for (var user of users) {
                     if (user.UserId == e.target.value) {
@@ -76,13 +81,13 @@ $(function () {
     function GetRooms(UserId) {
         $.ajax({
             method: "get",
-            url: `http://127.0.0.1:5000/get-rooms/${UserId}`,
+            url: `${API_BASE_URL}/get-rooms/${UserId}`,
             success: (rooms) => {
                 $("#lblUserId").html($.cookie("username")); // Display the logged-in user's name
                 $("#roomsContainer").empty(); // Clear the rooms container before appending new data
 
                 rooms.map(room => {
-                    const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';  // Fallback image if no image is available
+                    const roomImage = room.image ? `${API_BASE_URL}/${room.image}` : 'https://via.placeholder.com/150';  // Fallback image if no image is available
                     const card = `
     <div class="col-12 col-md-4 col-lg-4 mb-4"> 
         <div class="card room-card" style="max-width: 300px; margin: 0px auto 5px auto; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
@@ -141,7 +146,7 @@ $(function () {
 
         $.ajax({
             method: "get",
-            url: "http://127.0.0.1:5000/users",
+            url: `${API_BASE_URL}/users`,
             success: (users) => {
                 var user = users.find(rec => rec.UserId == UserId);
                 if (user) {
@@ -216,7 +221,7 @@ $(function () {
 
         // Send AJAX request
         $.ajax({
-            url: 'http://127.0.0.1:5000/add-room',
+            url: `${API_BASE_URL}/add-room`,
             type: 'POST',
             data: formData,
             processData: false,
@@ -247,7 +252,7 @@ $(function () {
         loadView("/edit-room.html");
         $.ajax({
             method: "get",
-            url: `http://127.0.0.1:5000/get-room/${roomId}`,
+            url: `${API_BASE_URL}/get-room/${roomId}`,
             success: (room) => {
                 if (!room) {
                     console.error("No room data received");
@@ -268,7 +273,7 @@ $(function () {
                     $("#txtContact").val(room.Contact);
 
                     if (room.image) {
-                        const roomImage = `http://127.0.0.1:5000/${room.image}`;
+                        const roomImage = `${API_BASE_URL}/${room.image}`;
                         $("#imgRoomPreview").attr("src", roomImage).show();
                     } else {
                         $("#imgRoomPreview").hide();
@@ -312,7 +317,7 @@ $(function () {
 
         $.ajax({
             method: "put",
-            url: `http://127.0.0.1:5000/edit-room/${roomId}`,
+            url: `${API_BASE_URL}/edit-room/${roomId}`,
             data: formData,
             processData: false,
             contentType: false,
@@ -334,7 +339,7 @@ $(function () {
 
         $.ajax({
             method: "get",
-            url: `http://127.0.0.1:5000/get-room/${roomId}`,
+            url: `${API_BASE_URL}/get-room/${roomId}`,
             success: (room) => {
                 $("#txtDRoomId").val(room.RoomId);
                 $("#lblDRoomTitle").text(room.Description);
@@ -353,7 +358,7 @@ $(function () {
 
         $.ajax({
             method: "delete",
-            url: `http://127.0.0.1:5000/delete-room/${roomId}`,
+            url: `${API_BASE_URL}/delete-room/${roomId}`,
             success: () => {
                 alert("Room Deleted Successfully");
                 loadView("/user-dashboard.html");
@@ -393,7 +398,7 @@ $(function () {
                 // Now that the page is loaded, make the AJAX request for room details
                 $.ajax({
                     method: "get",
-                    url: `http://127.0.0.1:5000/get-room/${roomId}`,
+                    url: `${API_BASE_URL}/get-room/${roomId}`,
                     success: (room) => {
                         if (!room) {
                             console.error("No room data received");
@@ -415,7 +420,7 @@ $(function () {
                             $("#lblContact").text(room.Contact || '');  // Contact Info
 
                             // Display the image
-                            const roomImage = room.image ? `http://127.0.0.1:5000/${room.image}` : 'https://via.placeholder.com/150';
+                            const roomImage = room.image ? `${API_BASE_URL}/${room.image}` : 'https://via.placeholder.com/150';
                             $("#imgRoomPreview").attr("src", roomImage).show();  // Show the image in the img tag
                         } catch (error) {
                             console.error("Error populating room details:", error);
