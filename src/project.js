@@ -7,7 +7,7 @@ $(function () {
     function loadView(url) {
         $.ajax({
             method: "get",
-            url: url,
+            url: `/public${url}`,
             success: (resp) => {
                 $("section").html(resp);
             }
@@ -391,7 +391,7 @@ $(function () {
         // Load the show-room page and wait for it to complete before making the AJAX request
         $.ajax({
             method: "get",
-            url: "/show-room.html",
+            url: "/public/show-room.html",
             success: (resp) => {
                 $("section").html(resp);
 

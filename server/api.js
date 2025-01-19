@@ -59,7 +59,8 @@ var upload = multer({ storage: storage });
 
 app.use(cors({
     origin: ["http://127.0.0.1:5500", "https://room-search-and-management.onrender.com"],
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
 app.get("/", (req, res) => {
