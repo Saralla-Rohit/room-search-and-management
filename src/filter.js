@@ -1,6 +1,6 @@
 // Using the API_BASE_URL from project.js
 $(function () {
-    const API_BASE_URL = 'https://roomify-backend-8uxc.onrender.com';
+    const API_BASE_URL = 'http://localhost:5000';  // Updated to use local server
 
     // When the price range slider is changed
     $(document).on("input", "#priceRange", function (e) {
@@ -39,6 +39,10 @@ $(function () {
             url: `${API_BASE_URL}/get-filtered-rooms?${queryParams.toString()}`,
             type: "GET",
             dataType: 'json',
+            crossDomain: true,
+            xhrFields: {
+                withCredentials: true
+            },
             success: function (rooms) {
                 // Clear the existing rooms
                 $("#roomsContainer").empty();

@@ -7,11 +7,14 @@ require('dotenv').config();
 
 // CORS configuration
 app.use(cors({
-    origin: ['https://room-search-and-management.onrender.com', 'http://localhost:3000'],
+    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     credentials: true
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
@@ -84,6 +87,45 @@ app.get("/get-filtered-rooms", async (req, res) => {
         res.json(rooms);
     } catch (err) {
         console.error('Filter error:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Get filtered rooms endpoint
+app.get("/get-filtered-rooms", async (req, res) => {
+    try {
+        const db = await connectDB();
+        const query = {};
+
+        // Build query based on filters
+        if (req.query.price) {
+            query.Price = { $lte: parseInt(req.query.price) };
+        }
+        if (req.query.bedrooms && req.query.bedrooms !== 'any') {
+            query.Bedrooms = parseInt(req.query.bedrooms);
+        }
+        if (req.query.bathrooms && req.query.bathrooms !== 'any') {
+            query.Bathrooms = parseInt(req.query.bathrooms);
+        }
+        if (req.query.propertyType && req.query.propertyType !== 'any') {
+            query.PropertyType = req.query.propertyType;
+        }
+        if (req.query.bachelorsAllowed && req.query.bachelorsAllowed !== 'any') {
+            query.BachelorsAllowed = req.query.bachelorsAllowed === 'true';
+        }
+        if (req.query.furnished && req.query.furnished !== 'any') {
+            query.Furnished = req.query.furnished === 'true';
+        }
+        if (req.query.parking && req.query.parking !== 'any') {
+            query.Parking = req.query.parking === 'true';
+        }
+
+        console.log('Filtering rooms with query:', query);
+        const rooms = await db.collection("rooms").find(query).toArray();
+        console.log(`Found ${rooms.length} rooms matching criteria`);
+        res.json(rooms);
+    } catch (err) {
+        console.error('Error filtering rooms:', err);
         res.status(500).json({ error: err.message });
     }
 });

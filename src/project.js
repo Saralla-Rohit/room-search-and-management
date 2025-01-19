@@ -1,6 +1,6 @@
 $(function () {
     // Define API base URL
-    const API_BASE_URL = 'https://roomify-backend-8uxc.onrender.com';
+    const API_BASE_URL = 'http://localhost:5000';  // Updated to use local server
 
     function loadView(url) {
         $.ajax({
@@ -171,7 +171,17 @@ $(function () {
                         alert("Invalid password");
                     }
                 } else {
-                    alert("Invalid Login Credentials");
+                    alert("User not found");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("API Error:", {status, error, response: xhr.responseText});
+                if (xhr.status === 404) {
+                    alert("Error: The user service is currently unavailable. Please try again later.");
+                } else if (xhr.status === 0) {
+                    alert("Error: Cannot connect to the server. Please check if the server is running.");
+                } else {
+                    alert("Error: " + (xhr.responseJSON?.message || error || "An unexpected error occurred"));
                 }
             }
         });
