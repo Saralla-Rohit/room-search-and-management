@@ -5,16 +5,17 @@ var multer = require('multer');
 var path = require('path');
 require('dotenv').config();
 
-// CORS middleware
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', 'https://room-search-and-management.onrender.com');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    if (req.method === 'OPTIONS') {
-        return res.sendStatus(200);
-    }
-    next();
-});
+// Configure CORS properly for all routes
+const corsOptions = {
+    origin: ['http://127.0.0.1:5500', 'https://room-search-and-management.onrender.com'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+    optionsSuccessStatus: 200
+};
+
+// Apply CORS configuration
+app.use(cors(corsOptions));
 
 // Parse JSON and URL-encoded bodies
 app.use(express.urlencoded({ extended: true }));
@@ -49,6 +50,32 @@ async function connectDB() {
 connectDB().catch(err => {
     console.error("Initial database connection failed:", err);
     process.exit(1);
+});
+
+app.get("/get-filtered-rooms", async (req, res) => {
+    try {
+        const db = await connectDB();
+        if (!db) {
+            return res.status(500).json({ error: "Database connection failed" });
+        }
+
+        const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
+        let filter = {};
+
+        if (price) filter.Price = { $lte: parseInt(price) };
+        if (bedrooms) filter.Bedrooms = parseInt(bedrooms);
+        if (bathrooms) filter.Bathrooms = parseInt(bathrooms);
+        if (propertyType) filter.PropertyType = propertyType;
+        if (bachelorsAllowed) filter.BachelorsAllowed = bachelorsAllowed === 'true';
+        if (furnished) filter.Furnished = furnished === 'true';
+        if (parking) filter.Parking = parking === 'true';
+
+        const rooms = await db.collection("rooms").find(filter).toArray();
+        res.json(rooms);
+    } catch (err) {
+        console.error('Filter error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // Serve static files
@@ -221,39 +248,6 @@ app.delete("/delete-room/:RoomId", async (req, res) => {
             error: "Error processing request",
             details: err.message
         });
-    }
-});
-
-app.get("/get-filtered-rooms", async (req, res) => {
-    console.log('GET /get-filtered-rooms - Request received');
-    console.log('Query parameters:', req.query);
-    
-    try {
-        const db = await connectDB();
-        if (!db) {
-            console.error('Database connection failed');
-            return res.status(500).json({ error: "Database connection failed" });
-        }
-
-        const { price, bedrooms, bathrooms, propertyType, bachelorsAllowed, furnished, parking } = req.query;
-        let filter = {};
-
-        if (price) filter.Price = { $lte: parseInt(price) };
-        if (bedrooms) filter.Bedrooms = parseInt(bedrooms);
-        if (bathrooms) filter.Bathrooms = parseInt(bathrooms);
-        if (propertyType) filter.PropertyType = propertyType;
-        if (bachelorsAllowed) filter.BachelorsAllowed = bachelorsAllowed === 'true';
-        if (furnished) filter.Furnished = furnished === 'true';
-        if (parking) filter.Parking = parking === 'true';
-
-        console.log('Applying filter:', JSON.stringify(filter));
-        const rooms = await db.collection("rooms").find(filter).toArray();
-        console.log(`Found ${rooms.length} rooms`);
-        
-        res.json(rooms);
-    } catch (err) {
-        console.error('Filter error:', err);
-        res.status(500).json({ error: err.message });
     }
 });
 
