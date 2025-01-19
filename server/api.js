@@ -289,5 +289,4 @@ app.get("/get-filtered-rooms", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`CORS enabled for origins: ${JSON.stringify(app.get('cors').origin)}`);
 });
