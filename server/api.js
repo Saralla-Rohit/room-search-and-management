@@ -7,13 +7,23 @@ require('dotenv').config();
 
 // CORS configuration
 app.use(cors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'https://room-search-and-management.onrender.com'],
+    origin: function(origin, callback) {
+        const allowedOrigins = ['http://127.0.0.1:5500', 'http://localhost:5500', 'https://room-search-and-management.onrender.com'];
+        // Allow requests with no origin (like mobile apps or curl requests)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) === -1) {
+            return callback(new Error('The CORS policy for this site does not allow access from the specified Origin.'), false);
+        }
+        return callback(null, true);
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
-    credentials: true
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
 
 // Handle preflight requests
+app.options('*', cors());
 
 // Parse JSON and URL-encoded bodies
 app.use(express.json());

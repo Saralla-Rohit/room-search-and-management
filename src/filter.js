@@ -1,6 +1,8 @@
 // Using the API_BASE_URL from project.js
 $(function () {
-    const API_BASE_URL = 'http://localhost:5000';  // Updated to use local server
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? 'http://localhost:5000'
+        : 'https://room-search-and-management.onrender.com';
 
     // When the price range slider is changed
     $(document).on("input", "#priceRange", function (e) {
