@@ -1,5 +1,5 @@
 body {
-    background-image: url("../public/images/background.jpg");
+    background-image: url("/public/images/background.jpg");
     background-size: cover;
     height: 100vh;
     overflow: hidden; /* This prevents the vertical scrollbar */
