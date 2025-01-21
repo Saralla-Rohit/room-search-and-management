@@ -7,18 +7,19 @@ require('dotenv').config();
 
 // CORS configuration
 app.use(cors({
-    origin: ['http://127.0.0.1:5500', 'http://localhost:5500'],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    origin: ['http://127.0.0.1:5500', 'http://localhost:5500', 'https://room-search-and-management.onrender.com'],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
     credentials: true
 }));
 
 // Handle preflight requests
-app.options('*', cors());
 
 // Parse JSON and URL-encoded bodies
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, '../public')));
+app.use('/src', express.static(path.join(__dirname, '../src')));
 
 // Database connection
 var mongoClient = require("mongodb").MongoClient;
@@ -51,7 +52,12 @@ connectDB().catch(err => {
     console.error("Initial database connection failed:", err);
     process.exit(1);
 });
-
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+app.get('/*.html', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public', req.path));
+});
 // Configure multer for file uploads
 var storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -76,8 +82,8 @@ app.get("/get-filtered-rooms", async (req, res) => {
         let filter = {};
 
         if (price) filter.Price = { $lte: parseInt(price) };
-        if (bedrooms) filter.Bedrooms = parseInt(bedrooms);
-        if (bathrooms) filter.Bathrooms = parseInt(bathrooms);
+        if (bedrooms) filter.Bedrooms = { $gte: parseInt(bedrooms) };
+        if (bathrooms) filter.Bathrooms = { $gte: parseInt(bathrooms) };
         if (propertyType) filter.PropertyType = propertyType;
         if (bachelorsAllowed) filter.BachelorsAllowed = bachelorsAllowed === 'true';
         if (furnished) filter.Furnished = furnished === 'true';
@@ -176,8 +182,15 @@ app.post("/add-room", upload.single('image'), async (req, res) => {
 app.get("/get-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
-        const room = await db.collection("rooms").findOne({ RoomId: req.params.RoomId });
-        res.json(room);  // Sending the appointment data as JSON response
+        const roomId = parseInt(req.params.RoomId);
+        if (isNaN(roomId)) {
+            return res.status(400).json({ error: "Invalid room ID format" });
+        }
+        const room = await db.collection("rooms").findOne({ RoomId: roomId });
+        if (!room) {
+            return res.status(404).json({ error: "Room not found" });
+        }
+        res.json(room);
     } catch (err) {
         console.error('Error:', err);
         res.status(500).json({ error: err.message });
@@ -218,11 +231,22 @@ app.put("/edit-room/:RoomId", upload.single('image'), async (req, res) => {
 app.delete("/delete-room/:RoomId", async (req, res) => {
     try {
         const db = await connectDB();
-        await db.collection("rooms").deleteOne({ RoomId: req.params.RoomId });
-        console.log('Room deleted..');
-        res.send(`Room id : ${req.params.RoomId} deleted`);
+        const roomId = parseInt(req.params.RoomId);
+        
+        if (isNaN(roomId)) {
+            return res.status(400).json({ error: "Invalid room ID format" });
+        }
+
+        const result = await db.collection("rooms").deleteOne({ RoomId: roomId });
+        
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ error: `No room found with ID ${roomId}` });
+        }
+        
+        console.log(`Room ${roomId} deleted successfully`);
+        res.json({ message: `Room ${roomId} deleted successfully` });
     } catch (err) {
-        console.error('Error:', err);
+        console.error('Error deleting room:', err);
         res.status(500).json({ error: err.message });
     }
 });

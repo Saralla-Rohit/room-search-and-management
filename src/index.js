@@ -1,11 +1,13 @@
 $(function () {
     // Define API base URL
-    const API_BASE_URL = 'http://localhost:5000';  // Updated to use local server
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:5500'
+        : 'https://room-search-and-management.onrender.com';  // Updated to use local server
 
     function loadView(url) {
         $.ajax({
             method: "get",
-            url: url,
+            url: API_BASE_URL + url,
             success: (resp) => {
                 $("section").html(resp);
             },
@@ -91,22 +93,22 @@ $(function () {
     // Check if user is logged in
     const UserId = $.cookie("UserId");
     if (UserId) {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms(UserId);
     } else {
-        loadView("/public/home.html");
+        loadView("/home.html");
     }
 
     $(document).on("click", "#btnCreateAccount", () => {
-        loadView("/public/register.html");
+        loadView("/register.html");
     });
 
     $(document).on("click", "#btnSignin", () => {
-        loadView("/public/login.html");
+        loadView("/login.html");
     });
 
     $(document).on("click", "#btnCancel", () => {
-        loadView("/public/home.html");
+        loadView("/home.html");
     });
 
     $(document).on("click", "#btnRegister", () => {
@@ -124,7 +126,7 @@ $(function () {
             data: user,
             success: () => {
                 alert("Registered Successfully..");
-                loadView("/public/user-login.html");
+                loadView("/user-login.html");
             }
         });
     });
@@ -165,7 +167,7 @@ $(function () {
                     if (user.Password == password) {
                         $.cookie("UserId", user.UserId);
                         $.cookie("username", user.UserName);
-                        loadView("/public/user-dashboard.html");
+                        loadView("/user-dashboard.html");
                         GetRooms(user.UserId);
                     } else {
                         alert("Invalid password");
@@ -174,8 +176,8 @@ $(function () {
                     alert("User not found");
                 }
             },
-            error: function(xhr, status, error) {
-                console.error("API Error:", {status, error, response: xhr.responseText});
+            error: function (xhr, status, error) {
+                console.error("API Error:", { status, error, response: xhr.responseText });
                 if (xhr.status === 404) {
                     alert("Error: The user service is currently unavailable. Please try again later.");
                 } else if (xhr.status === 0) {
@@ -190,15 +192,15 @@ $(function () {
     $(document).on("click", "#btnSignout", () => {
         $.removeCookie("username");
         $.removeCookie("UserId");
-        loadView("/public/login.html");
+        loadView("/login.html");
     });
 
     $(document).on("click", "#btnNewRoom", () => {
-        loadView("/public/add-room.html");
+        loadView("/add-room.html");
     });
 
     $(document).on("click", "#btnCancelRoom", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
@@ -251,7 +253,7 @@ $(function () {
             success: function (response) {
                 console.log('Room added successfully:', response);
                 alert('Room Added Successfully');
-                loadView("/public/user-dashboard.html");
+                loadView("/user-dashboard.html");
                 GetRooms($.cookie('UserId'));
             },
             error: function (xhr, status, error) {
@@ -271,7 +273,7 @@ $(function () {
             return;
         }
 
-        loadView("/public/edit-room.html");
+        loadView("/edit-room.html");
         $.ajax({
             method: "get",
             url: `${API_BASE_URL}/get-room/${roomId}`,
@@ -345,7 +347,7 @@ $(function () {
             contentType: false,
             success: () => {
                 alert("Room Updated Successfully");
-                loadView("/public/user-dashboard.html");
+                loadView("/user-dashboard.html");
                 GetRooms($.cookie("UserId"));
             },
             error: (err) => {
@@ -356,7 +358,7 @@ $(function () {
     });
 
     $(document).on("click", "#btnDelete", (e) => {
-        loadView("/public/delete-room.html");
+        loadView("/delete-room.html");
         const roomId = e.target.value;
 
         $.ajax({
@@ -376,30 +378,40 @@ $(function () {
     });
 
     $(document).on("click", "#btnConfirmDeleteRoom", () => {
-        const roomId = $("#txtDRoomId").val();
+        const roomId = parseInt($("#txtDRoomId").val());
+
+        if (isNaN(roomId)) {
+            alert("Invalid room ID");
+            return;
+        }
 
         $.ajax({
             method: "delete",
             url: `${API_BASE_URL}/delete-room/${roomId}`,
-            success: () => {
-                alert("Room Deleted Successfully");
-                loadView("/public/user-dashboard.html");
-                GetRooms($.cookie("UserId"));
+            success: (response) => {
+                if (response.message) {
+                    alert(response.message);
+                    loadView("/user-dashboard.html");
+                    // Ensure UI is refreshed after successful deletion
+                    setTimeout(() => {
+                        GetRooms($.cookie("UserId"));
+                    }, 100);
+                }
             },
-            error: (err) => {
-                console.error("Error deleting room:", err);
-                alert("There was an error while deleting the room. Please try again.");
+            error: (xhr) => {
+                console.error("Error deleting room:", xhr.responseJSON?.error || xhr.statusText);
+                alert(xhr.responseJSON?.error || "There was an error while deleting the room. Please try again.");
             }
         });
     });
 
     $(document).on("click", "#btnCancelDeleteRoom", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
     $(document).on("click", "#btnEditCancel", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
     $(document).on("click", ".showCard", (e) => {
@@ -413,7 +425,7 @@ $(function () {
         // Load the show-room page and wait for it to complete before making the AJAX request
         $.ajax({
             method: "get",
-            url: "/public/show-room.html",
+            url: "/show-room.html",
             success: (resp) => {
                 $("section").html(resp);
 
@@ -463,7 +475,7 @@ $(function () {
     });
 
     $(document).on("click", "#btnCloseRoomDetails", () => {
-        loadView("/public/user-dashboard.html");
+        loadView("/user-dashboard.html");
         GetRooms($.cookie("UserId"));
     });
 
